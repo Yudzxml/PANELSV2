@@ -216,7 +216,7 @@ p.lupa-password:hover {
 <script>
 const BASE_URL = '/api/panels'; 
 
-async function getUserInfo({ email }) {
+async function getUserInfo(email) {
     if (!email) throw new Error('Email diperlukan');
     const res = await axios.get(`${BASE_URL}`, {
   params: {
@@ -258,7 +258,7 @@ async function login() {
     }
 
     try {
-        const user = await getUserInfo({ email });
+        const { user } = await getUserInfo(email);
         if (user.password !== password) {
             showToast('Password salah.', 'warning')
             return;
