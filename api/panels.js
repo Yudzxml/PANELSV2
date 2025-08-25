@@ -146,22 +146,29 @@ module.exports = async function handler(req, res) {
       },
 
       // ------------------- PANEL ACTIONS -------------------
-      panel_create: async () => {
-        if (method !== 'POST') return res.status(405).json({ error: 'Method tidak diizinkan' });
-        const { email, password, ram } = req.body;
-        if (!email || !password || !ram) return res.status(400).json({ error: 'Field tidak lengkap' });
+      panel_create: async (req, res) => {
+  if (req.method !== 'POST') 
+    return res.status(405).json({ error: 'Method tidak diizinkan' });
 
-        const userRef = db.collection('users').doc(email);
-        const userDoc = await userRef.get();
-        if (!userDoc.exists) return res.status(404).json({ error: 'Email tidak terdaftar' });
+  const { email, username, password, ram } = req.body;
+  if (!email || !username || !password || !ram) 
+    return res.status(400).json({ error: 'Field tidak lengkap' });
 
-        const panelData = await createPanelAPI({ ram, username: email, password });
-        await userRef.collection('panels').doc(panelData.serverId).set({
-          ...panelData,
-          createdAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-        return res.json({ message: 'Panel berhasil dibuat', panel: panelData });
-      },
+  const userRef = db.collection('users').doc(email);
+  const userDoc = await userRef.get();
+  if (!userDoc.exists) 
+    return res.status(404).json({ error: 'Email tidak terdaftar' });
+
+  // Gunakan username yang berbeda dari email
+  const panelData = await createPanelAPI({ ram, username, password });
+
+  await userRef.collection('panels').doc(panelData.serverId).set({
+    ...panelData,
+    createdAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+
+  return res.json({ message: 'Panel berhasil dibuat', panel: panelData });
+},
 
       panel_delete: async () => {
         if (method !== 'DELETE') return res.status(405).json({ error: 'Method tidak diizinkan' });
