@@ -105,57 +105,92 @@ async function updateUserRole(email, role) {
 // ===== Handler =====
 module.exports = async function handler(req, res) {
   try {
-    if (req.method === 'POST' && req.url.endsWith('/panel/create')) {
-      const { email, password, ram } = req.body;
-      if (!email || !password || !ram) return res.status(400).json({ error: 'Field tidak lengkap' });
-      const userRef = db.collection('users').doc(email);
-      const userDoc = await userRef.get();
-      if (!userDoc.exists) return res.status(404).json({ error: 'Email tidak terdaftar' });
-      const panelData = await createPanelAPI({ ram, username: email, password });
-      await userRef.collection('panels').doc(panelData.serverId).set({ ...panelData, createdAt: admin.firestore.FieldValue.serverTimestamp() });
-      return res.json({ message: 'Panel berhasil dibuat', panel: panelData });
+    const method = req.method;
+    const action = req.body?.action || req.query?.action;
 
-    } else if (req.method === 'DELETE' && req.url.endsWith('/panel/delete')) {
-      const { userId, serverId } = req.body;
-      if (!userId || !serverId) return res.status(400).json({ error: 'Field tidak lengkap' });
-      const emailFound = await findPanelOwner(userId, serverId);
-      if (!emailFound) return res.status(404).json({ error: 'Panel tidak ditemukan' });
-      await deletePanelAPI({ userId, serverId });
-      await db.collection('users').doc(emailFound).collection('panels').doc(serverId).delete();
-      return res.json({ message: 'Panel berhasil dihapus' });
+    if (!action) return res.status(400).json({ error: 'Action tidak diberikan' });
 
-    } else if (req.method === 'GET' && req.url.endsWith('/panel/current')) {
-      const { email } = req.query;
-      if (!email) return res.status(400).json({ error: 'Email diperlukan' });
-      const panels = await getCurrentPanels(email);
-      return res.json({ panels });
+    // ========================= ACTION HANDLERS =========================
+    const actions = {
+      // ------------------- USER ACTIONS -------------------
+      user_add: async () => {
+        if (method !== 'POST') return res.status(405).json({ error: 'Method tidak diizinkan' });
+        const { email, password, activeDays, role } = req.body;
+        if (!email || !password || activeDays == null) return res.status(400).json({ error: 'Field tidak lengkap' });
+        const user = await addOrUpdateUser({ email, password, activeDays, role });
+        return res.json({ message: `User berhasil ${user.action}`, user });
+      },
 
-    } else if (req.method === 'POST' && req.url.endsWith('/user/add')) {
-      const { email, password, activeDays, role } = req.body;
-      if (!email || !password || activeDays == null) return res.status(400).json({ error: 'Field tidak lengkap' });
-      const user = await addOrUpdateUser({ email, password, activeDays, role });
-      return res.json({ message: `User berhasil ${user.action}`, user });
+      user_delete: async () => {
+        if (method !== 'DELETE') return res.status(405).json({ error: 'Method tidak diizinkan' });
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ error: 'Email diperlukan' });
+        const user = await deleteUser(email);
+        return res.json({ message: 'User berhasil dihapus', user });
+      },
 
-    } else if (req.method === 'DELETE' && req.url.endsWith('/user/delete')) {
-      const { email } = req.body;
-      if (!email) return res.status(400).json({ error: 'Email diperlukan' });
-      const user = await deleteUser(email);
-      return res.json({ message: 'User berhasil dihapus', user });
+      user_info: async () => {
+        if (method !== 'GET') return res.status(405).json({ error: 'Method tidak diizinkan' });
+        const { email } = req.query;
+        if (!email) return res.status(400).json({ error: 'Email diperlukan' });
+        const user = await getUser(email);
+        return res.json({ user });
+      },
 
-    } else if (req.method === 'GET' && req.url.endsWith('/user/info')) {
-      const { email } = req.query;
-      if (!email) return res.status(400).json({ error: 'Email diperlukan' });
-      const user = await getUser(email);
-      return res.json({ user });
+      user_role: async () => {
+        if (method !== 'POST') return res.status(405).json({ error: 'Method tidak diizinkan' });
+        const { email, role } = req.body;
+        if (!email || !role) return res.status(400).json({ error: 'Field tidak lengkap' });
+        const user = await updateUserRole(email, role);
+        return res.json({ message: 'Role user berhasil diubah', user });
+      },
 
-    } else if (req.method === 'POST' && req.url.endsWith('/user/role')) {
-      const { email, role } = req.body;
-      if (!email || !role) return res.status(400).json({ error: 'Field tidak lengkap' });
-      const user = await updateUserRole(email, role);
-      return res.json({ message: 'Role user berhasil diubah', user });
+      // ------------------- PANEL ACTIONS -------------------
+      panel_create: async () => {
+        if (method !== 'POST') return res.status(405).json({ error: 'Method tidak diizinkan' });
+        const { email, password, ram } = req.body;
+        if (!email || !password || !ram) return res.status(400).json({ error: 'Field tidak lengkap' });
 
+        const userRef = db.collection('users').doc(email);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) return res.status(404).json({ error: 'Email tidak terdaftar' });
+
+        const panelData = await createPanelAPI({ ram, username: email, password });
+        await userRef.collection('panels').doc(panelData.serverId).set({
+          ...panelData,
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return res.json({ message: 'Panel berhasil dibuat', panel: panelData });
+      },
+
+      panel_delete: async () => {
+        if (method !== 'DELETE') return res.status(405).json({ error: 'Method tidak diizinkan' });
+        const { userId, serverId } = req.body;
+        if (!userId || !serverId) return res.status(400).json({ error: 'Field tidak lengkap' });
+
+        const emailFound = await findPanelOwner(userId, serverId);
+        if (!emailFound) return res.status(404).json({ error: 'Panel tidak ditemukan' });
+
+        await deletePanelAPI({ userId, serverId });
+        await db.collection('users').doc(emailFound).collection('panels').doc(serverId).delete();
+        return res.json({ message: 'Panel berhasil dihapus' });
+      },
+
+      panel_current: async () => {
+        if (method !== 'GET') return res.status(405).json({ error: 'Method tidak diizinkan' });
+        const { email } = req.query;
+        if (!email) return res.status(400).json({ error: 'Email diperlukan' });
+
+        const panels = await getCurrentPanels(email);
+        return res.json({ panels });
+      }
+    };
+
+    // ========================= EXECUTE ACTION =========================
+    if (actions[action]) {
+      return await actions[action]();
     } else {
-      return res.status(404).json({ error: 'Endpoint tidak ditemukan' });
+      return res.status(404).json({ error: 'Action tidak ditemukan' });
     }
   } catch (err) {
     return res.status(500).json({ error: err.message });
