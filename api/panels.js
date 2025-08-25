@@ -15,7 +15,6 @@ const db = admin.firestore();
 const API_BASE = 'https://api-yudzxml.koyeb.app/api/panelHandler';
 
 // ===== Panel API =====
-// ===== Panel API =====
 async function createPanelAPI({ ram, username, password }) {
   try {
     console.log('[createPanelAPI] Membuat panel:', { ram, username });
@@ -231,24 +230,29 @@ module.exports = async function handler(req, res) {
 
       // ------------------- PANEL ACTIONS -------------------
       panel_create: async () => {
-        if (method !== 'POST') return res.status(405).json({ error: 'Method POST diperlukan' });
-        const { email, username, password, ram } = req.body;
-        if (!email || !username || !password || !ram) {
-          return res.status(400).json({ error: 'Field email, username, password, dan ram wajib diisi' });
-        }
+  if (method !== 'POST') return res.status(405).json({ error: 'Method POST diperlukan' });
+  const { email, username, password, ram } = req.body;
+  if (!email || !username || !password || !ram) return res.status(400).json({ error: 'Field email, username, password, dan ram wajib diisi' });
 
-        const userRef = db.collection('users').doc(email);
-        const userDoc = await userRef.get();
-        if (!userDoc.exists) return res.status(404).json({ error: 'Email tidak terdaftar' });
+  try {
+    const userRef = db.collection('users').doc(email);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) return res.status(404).json({ error: 'Email tidak terdaftar' });
 
-        const panelData = await createPanelAPI({ ram, username, password });
-        await userRef.collection('panels').doc(panelData.serverId).set({
-          ...panelData,
-          createdAt: admin.firestore.FieldValue.serverTimestamp()
-        });
+    const panelData = await createPanelAPI({ ram, username, password });
+    if (!panelData?.serverId) return res.status(500).json({ error: 'Server API tidak mengembalikan serverId' });
 
-        return res.json({ message: 'Panel berhasil dibuat', panel: panelData });
-      },
+    await userRef.collection('panels').doc(String(panelData.serverId)).set({
+      ...panelData,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    return res.json({ message: 'Panel berhasil dibuat', panel: panelData });
+
+  } catch (err) {
+    return res.status(500).json({ error: 'Gagal membuat panel: ' + (err.message || 'Unknown error') });
+  }
+},
 
       panel_delete: async () => {
         if (method !== 'DELETE') return res.status(405).json({ error: 'Method DELETE diperlukan' });
