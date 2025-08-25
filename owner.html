@@ -384,7 +384,13 @@ async function addUser() {
         const activeDays = parseInt(document.getElementById('activeDays')?.value) || 0;
         const role = document.getElementById('role')?.value.trim();
         if(!email||!password||activeDays<=0||!role) return showToast('Semua field harus diisi dengan benar.', 'warning');
-        const res = await axios.post(`${BASE_URL}/user/add`, {email,password,activeDays,role});
+        const res = await axios.post(`${BASE_URL}`, {
+          action: 'user_add',
+          email,
+          password,
+          activeDays,
+          role
+        });
         showToast('User berhasil ditambahkan/diupdate.', 'success'); console.log(res.data);
     } catch(err){ showToast(err.response?.data?.message||err.message,'error'); }
 }
@@ -393,7 +399,12 @@ async function deleteUser() {
     try{
         const email = document.getElementById('emailDelete')?.value.trim();
         if(!email) return showToast('Masukkan email user untuk dihapus.', 'warning');
-        const res = await axios.delete(`${BASE_URL}/user/delete`, { data:{email} });
+        const res = await axios.delete(`${BASE_URL}`, {
+          data: {
+          action: 'user_delete',
+          email
+           }
+        });
         showToast('User berhasil dihapus.', 'success'); console.log(res.data);
     } catch(err){ showToast(err.response?.data?.message||err.message,'error'); }
 }
@@ -403,7 +414,11 @@ async function updateRole() {
         const email = document.getElementById('emailRole')?.value.trim();
         const role = document.getElementById('roleUpdate')?.value.trim();
         if(!email||!role) return showToast('Email dan role harus diisi.', 'warning');
-        const res = await axios.post(`${BASE_URL}/user/role`, {email,role});
+        const res = await axios.post(`${BASE_URL}`, {
+          action: 'user_role',
+          email,
+          role
+        });
         showToast('Role berhasil diupdate.', 'success'); console.log(res.data);
     } catch(err){ showToast(err.response?.data?.message||err.message,'error'); }
 }
@@ -412,7 +427,12 @@ async function fetchUserInfo() {
     try{
         const email = document.getElementById('emailInfo')?.value.trim();
         if(!email) return showToast('Masukkan email untuk melihat info.', 'warning');
-        const res = await axios.get(`${BASE_URL}/user/info`, { params:{email} });
+        const res = await axios.get(`${BASE_URL}`, {
+          params: {
+          action: 'user_info',
+          email
+          }
+        });
         const infoEl = document.getElementById('userInfo');
         if(infoEl) infoEl.innerText = JSON.stringify(res.data,null,2);
     } catch(err){ showToast(err.response?.data?.message||err.message,'error'); }
