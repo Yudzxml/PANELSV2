@@ -147,13 +147,10 @@ module.exports = async function handler(req, res) {
 
       // ------------------- PANEL ACTIONS -------------------
       panel_create: async (req, res) => {
-  if (req.method !== 'POST') 
-    return res.status(405).json({ error: 'Method tidak diizinkan' });
-
+  if (method !== 'POST') return res.status(405).json({ error: 'Method tidak diizinkan' });
   const { email, username, password, ram } = req.body;
   if (!email || !username || !password || !ram) 
-    return res.status(400).json({ error: 'Field tidak lengkap' });
-
+  return res.status(400).json({ error: 'Field tidak lengkap' });
   const userRef = db.collection('users').doc(email);
   const userDoc = await userRef.get();
   if (!userDoc.exists) 
