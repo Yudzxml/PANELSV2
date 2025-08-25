@@ -553,16 +553,18 @@ button-submit:hover {
 </div>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
+let user = null;
+
 function loadUserData() {
     const loginInfo = localStorage.getItem('loginInfo');
-   if (!loginInfo) {
+    if (!loginInfo) {
         showToast('Silahkan login terlebih dahulu.', 'warning');
-        setTimeout(()=> window.location.href='index.html', 2000);
+        setTimeout(() => window.location.href = 'index.html', 2000);
         return;
     }
 
     try {
-        const user = JSON.parse(loginInfo) || {};
+        user = JSON.parse(loginInfo) || {};
         document.getElementById('name').textContent = user.email || 'email@gmail.com';
         document.getElementById('role').textContent = `${user.role || 'User'}`;
         document.getElementById('loginAt').textContent = `Time: ${user.loginAt ? new Date(user.loginAt).toLocaleString() : '-'}`;
@@ -577,7 +579,7 @@ function loadUserData() {
 function logout() {
     localStorage.removeItem('loginInfo');
     showToast('Logout berhasil.', 'success');
-    setTimeout(()=> window.location.href='index.html', 1500);
+    setTimeout(() => window.location.href = 'index.html', 1500);
 }
 
 function showToast(message, type = 'success', duration = 4000) {
@@ -597,179 +599,177 @@ function showToast(message, type = 'success', duration = 4000) {
     }, duration);
 }
 
-window.addEventListener('DOMContentLoaded', loadUserData);
+window.addEventListener('DOMContentLoaded', () => {
+    loadUserData();
+    renderPanels();
+});
 
-const BASE_URL = 'https://panelsv-2.vercel.app/api/panels'
+const BASE_URL = 'https://panelsv-2.vercel.app/api/panels';
 const toggleRam = document.getElementById("showRam");
 const ramOptions = document.getElementById("ramOptions");
 const panelForm = document.getElementById("panelForm");
 
 toggleRam.addEventListener("change", () => {
-  if(toggleRam.checked){
-    ramOptions.classList.add("show");
-  } else {
-    ramOptions.classList.remove("show");
-    document.querySelectorAll('input[name="ram"]').forEach(r => r.checked = false);
-  }
+    if (toggleRam.checked) {
+        ramOptions.classList.add("show");
+    } else {
+        ramOptions.classList.remove("show");
+        document.querySelectorAll('input[name="ram"]').forEach(r => r.checked = false);
+    }
 });
 
-async function createPanel({ email, password, ram }) {
-  if (!email || !password || !ram) throw new Error('Field tidak lengkap');
+async function createPanel({ email, username, password, ram }) {
+    if (!email || !password || !ram) throw new Error('Field tidak lengkap');
 
-  try {
-    const res = await axios.post(`${BASE_URL}`, {
-      action: 'panel_create',
-      email,
-      password,
-      ram
-    }, {
-      headers: { "Content-Type": "application/json" }
-    });
+    try {
+        console.log('[createPanel] Membuat panel:', { email, username, ram });
+        const res = await axios.post(`${BASE_URL}`, {
+            action: 'panel_create',
+            email,
+            username,
+            password,
+            ram
+        }, {
+            headers: { "Content-Type": "application/json" }
+        });
 
-    return res.data;
-  } catch (err) {
-    console.error('[createPanel] Error:', err.message || err);
-    throw new Error('Gagal membuat panel: ' + (err.message || 'Unknown error'));
-  }
+        console.log('[createPanel] Response:', res.data);
+        return res.data;
+    } catch (err) {
+        console.error('[createPanel] Error:', err.message || err);
+        throw new Error('Gagal membuat panel: ' + (err.message || 'Unknown error'));
+    }
 }
 
-panelForm.addEventListener("submit", async (e)=>{
-  e.preventDefault();
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const ram = document.querySelector("input[name='ram']:checked")?.value;
+panelForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const ram = document.querySelector("input[name='ram']:checked")?.value;
 
-  if(!username) return showToast('Username tidak boleh kosong', 'warning');
-  if(!password) return showToast('Password tidak boleh kosong', 'warning');
-  if(!ram) return showToast('Silahkan pilih RAM', 'warning');
+    if (!username) return showToast('Username tidak boleh kosong', 'warning');
+    if (!password) return showToast('Password tidak boleh kosong', 'warning');
+    if (!ram) return showToast('Silahkan pilih RAM', 'warning');
+    if (!user || !user.email) return showToast('Data user tidak tersedia', 'error');
 
-  try {
-    const result = await createPanel({ user.email, username, password, ram});
-    showToast('Panel berhasil dibuat!', 'success');
-    console.log(result);
-  } catch(err){
-    showToast(err.message, 'error');
-  }
+    try {
+        const result = await createPanel({ email: user.email, username, password, ram });
+        showToast('Panel berhasil dibuat!', 'success');
+        console.log(result);
+        renderPanels();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
 });
+
 const passwordInput = document.getElementById("password");
 const togglePassword = document.getElementById("togglePassword");
 
 togglePassword.addEventListener("click", () => {
-  const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
-  passwordInput.setAttribute("type", type);
-  togglePassword.classList.toggle("fa-eye-slash");
+    const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+    passwordInput.setAttribute("type", type);
+    togglePassword.classList.toggle("fa-eye-slash");
 });
+
 async function deletePanel({ userId, serverId }) {
-  if (!userId || !serverId) throw new Error('Field tidak lengkap');
+    if (!userId || !serverId) throw new Error('Field tidak lengkap');
 
-  try {
-    console.log('[deletePanel] Menghapus panel:', { userId, serverId });
-    
-    const res = await axios.delete(`${BASE_URL}`, {
-      headers: { "Content-Type": "application/json" },
-      data: {
-        action: 'panel_delete',
-        userId,
-        serverId
-      }
-    });
-
-    console.log('[deletePanel] Response:', res.data);
-    return res.data;
-  } catch (err) {
-    console.error('[deletePanel] Error:', err.message || err);
-    throw new Error('Gagal menghapus panel: ' + (err.message || 'Unknown error'));
-  }
+    try {
+        console.log('[deletePanel] Menghapus panel:', { userId, serverId });
+        const res = await axios.delete(`${BASE_URL}`, {
+            headers: { "Content-Type": "application/json" },
+            data: {
+                action: 'panel_delete',
+                userId,
+                serverId
+            }
+        });
+        console.log('[deletePanel] Response:', res.data);
+        return res.data;
+    } catch (err) {
+        console.error('[deletePanel] Error:', err.message || err);
+        throw new Error('Gagal menghapus panel: ' + (err.message || 'Unknown error'));
+    }
 }
 
 async function getCurrentPanels({ email }) {
-  if (!email) throw new Error('Email diperlukan');
+    if (!email) throw new Error('Email diperlukan');
 
-  try {
-    console.log('[getCurrentPanels] Mengambil panel untuk email:', email);
-
-    const res = await axios.get(`${BASE_URL}`, {
-      headers: { "Content-Type": "application/json" },
-      params: {
-        action: 'panel_current',
-        email
-      }
-    });
-
-    console.log('[getCurrentPanels] Response:', res.data);
-    return res.data;
-  } catch (err) {
-    console.error('[getCurrentPanels] Error:', err.message || err);
-    throw new Error('Gagal mengambil panels: ' + (err.message || 'Unknown error'));
-  }
-}
-
-const email = user.email;
-// Render list panel
-async function renderPanels() {
-  if (!email) return console.error('Email user tidak tersedia');
-  const panels = await getCurrentPanels({ email });
-  const container = document.getElementById('panelList');
-  container.innerHTML = '';
-
-  panels.forEach(panel => {
-    const card = document.createElement('div');
-    card.classList.add('panel-card');
-    card.innerHTML = `<i class="fas fa-server"></i> ${panel.name || panel.serverId}`;
-    card.addEventListener('click', () => showPanelDetail(panel));
-    container.appendChild(card);
-  });
-}
-
-// Tampilkan detail panel
-function showPanelDetail(panel) {
-  const modal = document.getElementById('panelDetailModal');
-  const detailsContainer = document.getElementById('panelDetails');
-  detailsContainer.innerHTML = '';
-
-  for (const key in panel) {
-    const div = document.createElement('div');
-    div.innerHTML = `
-      <span><i class="fas fa-key"></i> ${key}: ${panel[key]}</span>
-      <button data-value="${panel[key]}"><i class="fas fa-copy"></i></button>
-    `;
-    div.querySelector('button').addEventListener('click', (e) => {
-      navigator.clipboard.writeText(e.target.dataset.value || e.target.closest('button').dataset.value);
-      alert('Tersalin: ' + e.target.dataset.value);
-    });
-    detailsContainer.appendChild(div);
-  }
-
-  // Delete button
-  const deleteBtn = document.getElementById('deletePanelBtn');
-  deleteBtn.onclick = async () => {
     try {
-      await deletePanel(userId: user.id, serverId: panel.serverId);
-      modal.style.display = 'none';
-      renderPanels();
-      alert('Panel berhasil dihapus');
+        console.log('[getCurrentPanels] Mengambil panel untuk email:', email);
+        const res = await axios.get(`${BASE_URL}`, {
+            headers: { "Content-Type": "application/json" },
+            params: {
+                action: 'panel_current',
+                email
+            }
+        });
+        console.log('[getCurrentPanels] Response:', res.data);
+        return res.data;
     } catch (err) {
-      console.error(err);
-      alert('Gagal hapus panel');
+        console.error('[getCurrentPanels] Error:', err.message || err);
+        throw new Error('Gagal mengambil panels: ' + (err.message || 'Unknown error'));
     }
-  };
-
-  modal.style.display = 'block';
 }
 
-// Close modal
+async function renderPanels() {
+    if (!user || !user.email) return console.error('Email user tidak tersedia');
+    const panels = await getCurrentPanels({ email: user.email });
+    const container = document.getElementById('panelList');
+    container.innerHTML = '';
+
+    panels.forEach(panel => {
+        const card = document.createElement('div');
+        card.classList.add('panel-card');
+        card.innerHTML = `<i class="fas fa-server"></i> ${panel.name || panel.serverId}`;
+        card.addEventListener('click', () => showPanelDetail(panel));
+        container.appendChild(card);
+    });
+}
+
+function showPanelDetail(panel) {
+    const modal = document.getElementById('panelDetailModal');
+    const detailsContainer = document.getElementById('panelDetails');
+    detailsContainer.innerHTML = '';
+
+    for (const key in panel) {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <span><i class="fas fa-key"></i> ${key}: ${panel[key]}</span>
+          <button data-value="${panel[key]}"><i class="fas fa-copy"></i></button>
+        `;
+        div.querySelector('button').addEventListener('click', (e) => {
+            const value = e.target.dataset.value || e.target.closest('button').dataset.value;
+            navigator.clipboard.writeText(value);
+            showToast('Tersalin: ' + value, 'info');
+        });
+        detailsContainer.appendChild(div);
+    }
+
+    const deleteBtn = document.getElementById('deletePanelBtn');
+    deleteBtn.onclick = async () => {
+        try {
+            await deletePanel({ userId: user.id || user.email, serverId: panel.serverId });
+            modal.style.display = 'none';
+            renderPanels();
+            alert('Panel berhasil dihapus');
+        } catch (err) {
+            console.error(err);
+            alert('Gagal hapus panel');
+        }
+    };
+
+    modal.style.display = 'block';
+}
+
 document.getElementById('closeModal').onclick = () => {
-  document.getElementById('panelDetailModal').style.display = 'none';
+    document.getElementById('panelDetailModal').style.display = 'none';
 };
 
-// Klik luar modal untuk tutup
 window.onclick = (e) => {
-  const modal = document.getElementById('panelDetailModal');
-  if (e.target === modal) modal.style.display = 'none';
+    const modal = document.getElementById('panelDetailModal');
+    if (e.target === modal) modal.style.display = 'none';
 };
-
-// Init
-renderPanels();
 </script>
 </body>
 </html>
