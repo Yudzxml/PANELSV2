@@ -615,7 +615,7 @@ toggleRam.addEventListener("change", () => {
   }
 });
 
-async function createPanel({ email, password, ram }) {
+async function createPanel(email, password, ram) {
   if(!email || !password || !ram) throw new Error('Field tidak lengkap');
   const res = await axios.post(`${BASE_URL}`, {
   action: 'panel_create',
@@ -637,7 +637,7 @@ panelForm.addEventListener("submit", async (e)=>{
   if(!ram) return showToast('Silahkan pilih RAM', 'warning');
 
   try {
-    const result = await createPanel({ email, password, ram });
+    const result = await createPanel(email, password, ram);
     showToast('Panel berhasil dibuat!', 'success');
     console.log(result);
   } catch(err){
@@ -654,7 +654,7 @@ togglePassword.addEventListener("click", () => {
 });
 </script>
 <script>
-async function deletePanel({ userId, serverId }) {
+async function deletePanel(userId, serverId) {
   if (!userId || !serverId) throw new Error('Field tidak lengkap');
   const res = await axios.delete(`${BASE_URL}`, {
   data: {
@@ -666,7 +666,7 @@ async function deletePanel({ userId, serverId }) {
   return res.data;
 }
 
-async function getCurrentPanels({ email }) {
+async function getCurrentPanels(email) {
   if (!email) throw new Error('Email diperlukan');
   const res = await axios.get(`${BASE_URL}`, {
   params: {
@@ -681,7 +681,7 @@ const email = user.email;
 // Render list panel
 async function renderPanels() {
   if (!email) return console.error('Email user tidak tersedia');
-  const panels = await getCurrentPanels({ email });
+  const panels = await getCurrentPanels(email);
   const container = document.getElementById('panelList');
   container.innerHTML = '';
 
@@ -717,7 +717,7 @@ function showPanelDetail(panel) {
   const deleteBtn = document.getElementById('deletePanelBtn');
   deleteBtn.onclick = async () => {
     try {
-      await deletePanel({ userId: user.id, serverId: panel.serverId });
+      await deletePanel(userId: user.id, serverId: panel.serverId);
       modal.style.display = 'none';
       renderPanels();
       alert('Panel berhasil dihapus');
