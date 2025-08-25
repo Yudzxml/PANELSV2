@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Reseller</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+<style>
+/* Reset dan box-sizing */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Body */
+body {
+    font-family: 'Arial', sans-serif;
+    background: #0d0d0d;
+    color: #fff;
+    min-height: 100vh;
+    text-align: center; /* Semua teks di body center default */
+}
+
+header {
+    background: rgba(20,20,20,0.95);
+    padding: 1rem 2rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #333;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    gap: 0;
+}
+
+header h1 {
+    color: #00aaff;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: flex-start;
+}
+
+header button {
+    background: linear-gradient(to right, #00aaff, #0056b3);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+header button:hover {
+    background: linear-gradient(to right, #0056b3, #003f7f);
+}
+
+/* Container */
+.container {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+
+/* Profile Card */
+.profile-card {
+    background: rgba(20,20,20,0.95);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 320px;
+    text-align: center;
+    border: 1px solid #333;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.7);
+}
+
+.profile-card img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #00aaff;
+    margin-bottom: 1rem;
+}
+
+.profile-card h2 {
+    margin: 0.5rem 0;
+    color: #00aaff;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.profile-card p {
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+/* Card Section */
+.profile-card .card-section {
+    margin-top: 1.5rem;
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #333;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-card .card-section h3 {
+    margin: 0 0 0.5rem 0;
+    color: #00aaff;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.profile-card .card-section p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+/* Toast container di atas layar */
+#toast-container {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+}
+
+/* Style dasar toast */
+.toast {
+    min-width: 250px;
+    max-width: 350px;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+    text-align: center;
+}
+
+/* Animasi muncul */
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Variasi warna */
+.toast.success {
+    background: linear-gradient(to right, #00aaff, #0056b3);
+}
+
+.toast.error {
+    background: linear-gradient(to right, #ff6b6b, #d80000);
+}
+
+.toast.warning {
+    background: linear-gradient(to right, #ffb74d, #ff9800);
+}
+
+.toast.info {
+    background: linear-gradient(to right, #5c6bc0, #3949ab);
+}
+
+/* Hover bisa dikasih shadow */
+.toast:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+}
+
+/* Icon Styling */
+.profile-card i,
+header i,
+.toast i {
+    color: inherit;
+}
+</style>
+<style>
+.form-panel {
+    background: rgba(20,20,20,0.95);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 320px;
+    text-align: center;
+    border: 1px solid #333;
+    margin-top: 0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+}
+.form-panel:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.7);
+}
+
+.form-panel h3 {
+    margin-bottom: 1.5rem;
+    color: #00aaff;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: #ddd;
+    font-size: 0.95rem;
+}
+
+.form-group label {
+    font-weight: bold;
+    color: #ccc;
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border 0.2s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="password"]:focus {
+    border: 1px solid #00aaff;
+    box-shadow: 0 0 5px #00aaff;
+}
+
+.form-group input[type="checkbox"] {
+    margin-right: 0.5rem;
+    accent-color: #00aaff;
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+.form-group input[type="radio"] {
+    accent-color: #00aaff;
+    transform: scale(1.1);
+    cursor: pointer;
+    margin-right: 0.4rem;
+}
+
+/* Container RAM rapi */
+.ram-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.ram-grid label {
+    background: #1a1a1a;
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1 1 45%;
+    text-align: center;
+    font-weight: normal;
+    color: #eee;
+}
+
+.ram-grid input:checked + span {
+    background: #00aaff;
+    color: #fff;
+    box-shadow: 0 0 5px #00aaff;
+}
+
+/* RAM options hidden animasi */
+#ramOptions {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+#ramOptions.show {
+    max-height: 500px;
+    opacity: 1;
+}
+
+button-submit {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(to right, #00aaff, #0056b3);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+}
+
+button-submit:hover {
+    background: linear-gradient(to right, #0056b3, #003f7f);
+}
+</style>
+<style>
+/* Panel List */
+#panelList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.panel-card {
+    background: rgba(20,20,20,0.95);
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    min-width: 180px;
+    max-width: 220px;
+    text-align: center;
+    font-size: 0.95rem;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.2s ease;
+}
+
+.panel-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.6);
+    background: rgba(20,20,20,1);
+}
+
+/* Detail Modal */
+#panelDetailModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.75);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+#panelDetailModal > div {
+    background: rgba(20,20,20,0.95);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 450px;
+    text-align: left;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+    position: relative;
+}
+
+#panelDetailModal h3 {
+    color: #00aaff;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+#panelDetailModal #closeModal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #fff;
+    transition: color 0.2s ease;
+}
+
+#panelDetailModal #closeModal:hover {
+    color: #00aaff;
+}
+
+#panelDetails div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1a1a1a;
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    gap: 0.5rem;
+}
+
+#panelDetails div button {
+    background: linear-gradient(to right, #00aaff, #0056b3);
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#panelDetails div button:hover {
+    background: linear-gradient(to right, #0056b3, #003f7f);
+}
+
+#deletePanelBtn {
+    margin-top: 1rem;
+    width: 100%;
+    background: linear-gradient(to right, #ff6b6b, #d80000);
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+#deletePanelBtn:hover {
+    background: linear-gradient(to right, #d80000, #a30000);
+}
+</style>
+</head>
+<body>
+ <div id="toast-container"></div>
+<header>
+    <h1><i class="fa-solid fa-gauge"></i> Dashboard</h1>
+    <button onclick="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </button>
+</header>
+
+<div class="container">
+  <!-- Profile Card -->
+<div class="profile-card">
+  <img id="pp" src="" alt="Profile Picture">
+  <h2 id="name"><i class="fa-solid fa-user"></i> Nama</h2>
+  <p id="role"><i class="fa-solid fa-id-badge"></i> Role: User</p>
+  <div class="card-section">
+    <h3><i class="fa-solid fa-info-circle"></i> INFORMASI AKUN</h3>
+    <p id="loginAt"><i class="fa-solid fa-clock"></i> Login terakhir: -</p>
+    <p id="expired"><i class="fa-solid fa-calendar-xmark"></i> Kadaluarsa: -</p>
+  </div>
+</div>
+
+<div class="form-panel">
+  <h3><i class="fa-solid fa-server"></i> FORM PANEL</h3>
+  <form id="panelForm">
+    <div class="form-group">
+      <label for="username"><i class="fa-solid fa-user"></i> Username:</label>
+      <input type="text" id="username" name="username" required>
+    </div>
+
+    <div class="form-group" style="position: relative;">
+  <label for="password"><i class="fa-solid fa-lock"></i> Password:</label>
+  <input type="password" id="password" name="password" required>
+  <i id="togglePassword" class="fa-solid fa-eye" 
+     style="position: absolute; right: 10px; top: 70%; transform: translateY(-50%); cursor: pointer;"></i>
+</div>
+
+    <div class="form-group">
+      <label>
+        <input type="checkbox" id="showRam">
+        <i class="fa-solid fa-microchip"></i> PILIH RAM
+      </label>
+    </div>
+
+    <div class="form-group" id="ramOptions">
+      <label><i class="fa-solid fa-memory"></i> Pilih RAM:</label>
+      <div class="ram-grid">
+        <label><input type="radio" name="ram" value="1GB"><span>1GB</span></label>
+        <label><input type="radio" name="ram" value="2GB"><span>2GB</span></label>
+        <label><input type="radio" name="ram" value="4GB"><span>4GB</span></label>
+        <label><input type="radio" name="ram" value="8GB"><span>8GB</span></label>
+        <label><input type="radio" name="ram" value="16GB"><span>16GB</span></label>
+        <label><input type="radio" name="ram" value="32GB"><span>32GB</span></label>
+      </div>
+    </div>
+
+    <button-submit type="submit"><i class="fa-solid fa-paper-plane"></i> Submit</button-submit>
+  </form>
+</div>
+
+<!-- List Panel -->
+<div id="panelList"></div>
+
+<!-- Detail Modal -->
+<div id="panelDetailModal">
+  <div>
+    <span id="closeModal">&times;</span>
+    <h3><i class="fas fa-info-circle"></i> Detail Panel</h3>
+    <div id="panelDetails"></div>
+    <button id="deletePanelBtn"><i class="fas fa-trash-alt"></i> Hapus Panel</button>
+  </div>
+</div>
+
+</div>
+<script>
+function loadUserData() {
+    const loginInfo = localStorage.getItem('loginInfo');
+    /** UNTUK TESTING SEMENTERA OFF
+   if (!loginInfo) {
+        showToast('Silahkan login terlebih dahulu.', 'warning');
+        setTimeout(()=> window.location.href='index.html', 2000);
+        return;
+    }
+**/
+    try {
+        const user = JSON.parse(loginInfo) || {};
+        document.getElementById('name').textContent = user.email || 'email@gmail.com';
+        document.getElementById('role').textContent = `${user.role || 'User'}`;
+        document.getElementById('loginAt').textContent = `Time: ${user.loginAt ? new Date(user.loginAt).toLocaleString() : '-'}`;
+        document.getElementById('expired').textContent = `Exp: ${user.expired ? new Date(user.expired).toLocaleDateString() : '-'}`;
+        document.getElementById('pp').src = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png?q=60'; 
+    } catch (err) {
+        console.error(err);
+        showToast('Gagal memuat data user.', 'error');
+    }
+}
+
+function logout() {
+    localStorage.removeItem('loginInfo');
+    showToast('Logout berhasil.', 'success');
+    setTimeout(()=> window.location.href='index.html', 1500);
+}
+
+function showToast(message, type = 'success', duration = 4000) {
+    const container = document.getElementById('toast-container');
+    const existingToast = container.querySelector('.toast');
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+window.addEventListener('DOMContentLoaded', loadUserData);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+const BASE_URL = '/api'
+const toggleRam = document.getElementById("showRam");
+const ramOptions = document.getElementById("ramOptions");
+const panelForm = document.getElementById("panelForm");
+
+toggleRam.addEventListener("change", () => {
+  if(toggleRam.checked){
+    ramOptions.classList.add("show");
+  } else {
+    ramOptions.classList.remove("show");
+    document.querySelectorAll('input[name="ram"]').forEach(r => r.checked = false);
+  }
+});
+
+async function createPanel({ email, password, ram }) {
+  if(!email || !password || !ram) throw new Error('Field tidak lengkap');
+  const res = await axios.post(`${BASE_URL}/panel/create`, { email, password, ram });
+  return res.data;
+}
+
+panelForm.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const ram = document.querySelector("input[name='ram']:checked")?.value;
+
+  if(!email) return showToast('Username tidak boleh kosong', 'warning');
+  if(!password) return showToast('Password tidak boleh kosong', 'warning');
+  if(!ram) return showToast('Silahkan pilih RAM', 'warning');
+
+  try {
+    const result = await createPanel({ email, password, ram });
+    showToast('Panel berhasil dibuat!', 'success');
+    console.log(result);
+  } catch(err){
+    showToast(err.message, 'error');
+  }
+});
+const passwordInput = document.getElementById("password");
+const togglePassword = document.getElementById("togglePassword");
+
+togglePassword.addEventListener("click", () => {
+  const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+  passwordInput.setAttribute("type", type);
+  togglePassword.classList.toggle("fa-eye-slash");
+});
+</script>
+<script>
+async function deletePanel({ userId, serverId }) {
+  if (!userId || !serverId) throw new Error('Field tidak lengkap');
+  const res = await axios.delete(`${BASE_URL}/panel/delete`, { data: { userId, serverId } });
+  return res.data;
+}
+
+async function getCurrentPanels({ email }) {
+  if (!email) throw new Error('Email diperlukan');
+  const res = await axios.get(`${BASE_URL}/panel/current`, { params: { email } });
+  return res.data;
+};
+
+const email = user.email;
+// Render list panel
+async function renderPanels() {
+  if (!email) return console.error('Email user tidak tersedia');
+  const panels = await getCurrentPanels({ email });
+  const container = document.getElementById('panelList');
+  container.innerHTML = '';
+
+  panels.forEach(panel => {
+    const card = document.createElement('div');
+    card.classList.add('panel-card');
+    card.innerHTML = `<i class="fas fa-server"></i> ${panel.name || panel.serverId}`;
+    card.addEventListener('click', () => showPanelDetail(panel));
+    container.appendChild(card);
+  });
+}
+
+// Tampilkan detail panel
+function showPanelDetail(panel) {
+  const modal = document.getElementById('panelDetailModal');
+  const detailsContainer = document.getElementById('panelDetails');
+  detailsContainer.innerHTML = '';
+
+  for (const key in panel) {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <span><i class="fas fa-key"></i> ${key}: ${panel[key]}</span>
+      <button data-value="${panel[key]}"><i class="fas fa-copy"></i></button>
+    `;
+    div.querySelector('button').addEventListener('click', (e) => {
+      navigator.clipboard.writeText(e.target.dataset.value || e.target.closest('button').dataset.value);
+      alert('Tersalin: ' + e.target.dataset.value);
+    });
+    detailsContainer.appendChild(div);
+  }
+
+  // Delete button
+  const deleteBtn = document.getElementById('deletePanelBtn');
+  deleteBtn.onclick = async () => {
+    try {
+      await deletePanel({ userId: user.id, serverId: panel.serverId });
+      modal.style.display = 'none';
+      renderPanels();
+      alert('Panel berhasil dihapus');
+    } catch (err) {
+      console.error(err);
+      alert('Gagal hapus panel');
+    }
+  };
+
+  modal.style.display = 'block';
+}
+
+// Close modal
+document.getElementById('closeModal').onclick = () => {
+  document.getElementById('panelDetailModal').style.display = 'none';
+};
+
+// Klik luar modal untuk tutup
+window.onclick = (e) => {
+  const modal = document.getElementById('panelDetailModal');
+  if (e.target === modal) modal.style.display = 'none';
+};
+
+// Init
+renderPanels();
+</script>
+</body>
+</html>

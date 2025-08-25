@@ -1,0 +1,15 @@
+{
+  "name": "RESELLER PANEL",
+  "version": "2.0.1",
+  "description": "WEBSITE RESELLER PANEL DIGUNAKAN UNTUK MENGCREATE PANEL DAN HAPUS SAN SEBAGAINYA",
+  "type": "commonjs",
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "axios": "^1.7.9"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "author": "Yudzxml",
+  "license": "MIT"
+}
