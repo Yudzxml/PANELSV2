@@ -327,7 +327,7 @@ header i,
     opacity: 1;
 }
 
-button-submit {
+.btn-submit {
     width: 100%;
     padding: 0.75rem;
     border: none;
@@ -341,7 +341,7 @@ button-submit {
     margin-top: 1rem;
 }
 
-button-submit:hover {
+.btn-submit:hover {
     background: linear-gradient(to right, #0056b3, #003f7f);
 }
 </style>
@@ -524,16 +524,18 @@ button-submit:hover {
     <div class="form-group" id="ramOptions">
       <label><i class="fa-solid fa-memory"></i> Pilih RAM:</label>
       <div class="ram-grid">
-        <label><input type="radio" name="ram" value="1GB"><span>1GB</span></label>
-        <label><input type="radio" name="ram" value="2GB"><span>2GB</span></label>
-        <label><input type="radio" name="ram" value="4GB"><span>4GB</span></label>
-        <label><input type="radio" name="ram" value="8GB"><span>8GB</span></label>
-        <label><input type="radio" name="ram" value="16GB"><span>16GB</span></label>
-        <label><input type="radio" name="ram" value="32GB"><span>32GB</span></label>
+        <label><input type="radio" name="ram" value="1gb"><span>1GB</span></label>
+        <label><input type="radio" name="ram" value="2gb"><span>2GB</span></label>
+        <label><input type="radio" name="ram" value="4gb"><span>4GB</span></label>
+        <label><input type="radio" name="ram" value="8gb"><span>8GB</span></label>
+        <label><input type="radio" name="ram" value="16gb"><span>16GB</span></label>
+        <label><input type="radio" name="ram" value="unli"><span>Unli</span></label>
       </div>
     </div>
 
-    <button-submit type="submit"><i class="fa-solid fa-paper-plane"></i> Submit</button-submit>
+<button type="submit" class="btn-submit">
+  <i class="fa-solid fa-paper-plane"></i> Submit
+</button>
   </form>
 </div>
 
