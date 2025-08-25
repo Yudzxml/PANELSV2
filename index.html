@@ -218,7 +218,12 @@ const BASE_URL = '/api/panels';
 
 async function getUserInfo({ email }) {
     if (!email) throw new Error('Email diperlukan');
-    const res = await axios.get(`${BASE_URL}/user/info`, { params: { email } });
+    const res = await axios.get(`${BASE_URL}`, {
+  params: {
+    action: 'user_info',
+    email
+  }
+});
     return res.data;
 }
 

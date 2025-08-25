@@ -617,7 +617,12 @@ toggleRam.addEventListener("change", () => {
 
 async function createPanel({ email, password, ram }) {
   if(!email || !password || !ram) throw new Error('Field tidak lengkap');
-  const res = await axios.post(`${BASE_URL}/panel/create`, { email, password, ram });
+  const res = await axios.post(`${BASE_URL}`, {
+  action: 'panel_create',
+  email,
+  password,
+  ram
+});
   return res.data;
 }
 
@@ -651,13 +656,24 @@ togglePassword.addEventListener("click", () => {
 <script>
 async function deletePanel({ userId, serverId }) {
   if (!userId || !serverId) throw new Error('Field tidak lengkap');
-  const res = await axios.delete(`${BASE_URL}/panel/delete`, { data: { userId, serverId } });
+  const res = await axios.delete(`${BASE_URL}`, {
+  data: {
+    action: 'panel_delete',
+    userId,
+    serverId
+  }
+});
   return res.data;
 }
 
 async function getCurrentPanels({ email }) {
   if (!email) throw new Error('Email diperlukan');
-  const res = await axios.get(`${BASE_URL}/panel/current`, { params: { email } });
+  const res = await axios.get(`${BASE_URL}`, {
+  params: {
+    action: 'panel_current', 
+    email
+  }
+});
   return res.data;
 };
 
