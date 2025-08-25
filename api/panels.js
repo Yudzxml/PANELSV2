@@ -146,26 +146,25 @@ module.exports = async function handler(req, res) {
       },
 
       // ------------------- PANEL ACTIONS -------------------
-      panel_create: async (req, res) => {
-  if (method !== 'POST') return res.status(405).json({ error: 'Method tidak diizinkan' });
-  const { email, username, password, ram } = req.body;
-  if (!email || !username || !password || !ram) 
-  return res.status(400).json({ error: 'Field tidak lengkap' });
-  const userRef = db.collection('users').doc(email);
-  const userDoc = await userRef.get();
-  if (!userDoc.exists) 
-    return res.status(404).json({ error: 'Email tidak terdaftar' });
+      panel_create: async () => {
+        if (method !== 'POST') return res.status(405).json({ error: 'Method tidak diizinkan' });
+        const { email, username, password, ram } = req.body;
+        if (!email || !username || !password || !ram) 
+          return res.status(400).json({ error: 'Field tidak lengkap' });
 
-  // Gunakan username yang berbeda dari email
-  const panelData = await createPanelAPI({ ram, username, password });
+        const userRef = db.collection('users').doc(email);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) 
+          return res.status(404).json({ error: 'Email tidak terdaftar' });
+        const panelData = await createPanelAPI({ ram, username, password });
 
-  await userRef.collection('panels').doc(panelData.serverId).set({
-    ...panelData,
-    createdAt: admin.firestore.FieldValue.serverTimestamp()
-  });
+        await userRef.collection('panels').doc(panelData.serverId).set({
+          ...panelData,
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
 
-  return res.json({ message: 'Panel berhasil dibuat', panel: panelData });
-},
+        return res.json({ message: 'Panel berhasil dibuat', panel: panelData });
+      },
 
       panel_delete: async () => {
         if (method !== 'DELETE') return res.status(405).json({ error: 'Method tidak diizinkan' });
@@ -197,6 +196,7 @@ module.exports = async function handler(req, res) {
       return res.status(404).json({ error: 'Action tidak ditemukan' });
     }
   } catch (err) {
+    console.error('Handler Error:', err);
     return res.status(500).json({ error: err.message });
   }
 };
