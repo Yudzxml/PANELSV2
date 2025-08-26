@@ -65,7 +65,16 @@ async function getCurrentPanels(email) {
 
 async function findPanelOwner(email, userId, serverId) {
   try {
-    console.log('[findPanelOwner] Mencari pemilik panel:', { email, userId, serverId });
+    // Pastikan userId & serverId adalah number
+    const uid = Number(userId);
+    const sid = Number(serverId);
+
+    if (!email || isNaN(uid) || isNaN(sid)) {
+      console.log('[findPanelOwner] Input tidak valid:', { email, userId, serverId });
+      return null;
+    }
+
+    console.log('[findPanelOwner] Mencari pemilik panel:', { email, userId: uid, serverId: sid });
 
     // Cari user langsung dari email
     const userDoc = await db.collection('users').doc(email).get();
@@ -74,22 +83,23 @@ async function findPanelOwner(email, userId, serverId) {
       return null;
     }
 
-    // Cari panel berdasarkan serverId di subcollection user
-    const panelDoc = await userDoc.ref.collection('panels').doc(serverId).get();
+    // Cari panel berdasarkan serverId di subcollection user (doc() harus string)
+    const panelDoc = await userDoc.ref.collection('panels').doc(String(sid)).get();
     if (!panelDoc.exists) {
-      console.log('[findPanelOwner] Panel tidak ditemukan untuk serverId:', serverId);
+      console.log('[findPanelOwner] Panel tidak ditemukan untuk serverId:', sid);
       return null;
     }
 
     // Validasi userId panel
     const panelData = panelDoc.data();
-    if (panelData.userId !== userId) {
-      console.log('[findPanelOwner] UserId tidak cocok. Panel userId:', panelData.userId, 'Expected:', userId);
+    if (Number(panelData.userId) !== uid) {
+      console.log('[findPanelOwner] UserId tidak cocok. Panel userId:', panelData.userId, 'Expected:', uid);
       return null;
     }
 
-    console.log('[findPanelOwner] Pemilik valid:', { email, userId, serverId });
-    return { email, userId, serverId }; // return tiga data
+    console.log('[findPanelOwner] Pemilik valid:', { email, userId: uid, serverId: sid });
+    return { email, userId: uid, serverId: sid }; // return tiga data
+
   } catch (err) {
     console.error('[findPanelOwner] Error:', err.message || err);
     throw new Error('Gagal mencari pemilik panel: ' + (err.message || 'Unknown error'));
