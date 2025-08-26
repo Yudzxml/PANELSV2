@@ -620,13 +620,13 @@ let user = null;
 
 function loadUserData() {
     const loginInfo = localStorage.getItem('loginInfo');
-    /**
+    
     if (!loginInfo) {
         showToast('Silahkan login terlebih dahulu.', 'warning');
         setTimeout(() => window.location.href = 'index.html', 2000);
         return;
     }
-**/
+
     try {
         user = JSON.parse(loginInfo) || {};
         document.getElementById('name').textContent = user.email || 'email@gmail.com';
@@ -668,7 +668,7 @@ window.addEventListener('DOMContentLoaded', () => {
     renderPanels();
 });
 
-const BASE_URL = 'https://panelsv-2.vercel.app/api/panels';
+const BASE_URL = '/api/panels';
 const toggleRam = document.getElementById("showRam");
 const ramOptions = document.getElementById("ramOptions");
 const panelForm = document.getElementById("panelForm");
@@ -735,25 +735,28 @@ togglePassword.addEventListener("click", () => {
     togglePassword.classList.toggle("fa-eye-slash");
 });
 
-async function deletePanel({ userId, serverId }) {
-    if (!userId || !serverId) throw new Error('Field tidak lengkap');
+async function deletePanel({ email, userId, serverId }) {
+  if (!email || !userId || !serverId) throw new Error('Field tidak lengkap');
 
-    try {
-        console.log('[deletePanel] Menghapus panel:', { userId, serverId });
-        const res = await axios.delete(`${BASE_URL}`, {
-            headers: { "Content-Type": "application/json" },
-            data: {
-                action: 'panel_delete',
-                userId,
-                serverId
-            }
-        });
-        console.log('[deletePanel] Response:', res.data);
-        return res.data;
-    } catch (err) {
-        console.error('[deletePanel] Error:', err.message || err);
-        throw new Error('Gagal menghapus panel: ' + (err.message || 'Unknown error'));
-    }
+  try {
+    console.log('[deletePanel] Menghapus panel:', { email, userId, serverId });
+
+    const res = await axios.delete(`${BASE_URL}`, {
+      headers: { "Content-Type": "application/json" },
+      data: {
+        action: 'panel_delete',
+        email,
+        userId,
+        serverId
+      }
+    });
+
+    console.log('[deletePanel] Response:', res.data);
+    return res.data;
+  } catch (err) {
+    console.error('[deletePanel] Error:', err.message || err);
+    throw new Error('Gagal menghapus panel: ' + (err.message || 'Unknown error'));
+  }
 }
 
 async function getCurrentPanels({ email }) {
@@ -867,19 +870,22 @@ function showPanelDetail(panel) {
         align-self: center;
     `;
     deleteBtn.onclick = async () => {
-        const userId = String(panel.userId || '');
-        const serverId = String(panel.serverId || '');
-        if (!userId || !serverId) return showToast('Data panel tidak lengkap', 'error');
-        try {
-            await deletePanel({ userId, serverId });
-            modal.style.display = 'none';
-            renderPanels();
-            showToast('Panel berhasil dihapus', 'success');
-        } catch (err) {
-            console.error(err);
-            showToast('Gagal hapus panel', 'error');
-        }
-    };
+    const email = user?.email || '';
+    const userId = String(panel.userId || '');
+    const serverId = String(panel.serverId || '');
+
+    if (!email || !userId || !serverId) return showToast('Data panel tidak lengkap', 'error');
+
+    try {
+        await deletePanel({ email, userId, serverId });
+        modal.style.display = 'none';
+        renderPanels();
+        showToast('Panel berhasil dihapus', 'success');
+    } catch (err) {
+        console.error(err);
+        showToast('Gagal hapus panel', 'error');
+    }
+};
     detailsContainer.appendChild(deleteBtn);
 
     modal.style.display = 'flex';
