@@ -716,17 +716,24 @@ async function getCurrentPanels({ email }) {
 
 async function renderPanels() {
     if (!user || !user.email) return console.error('Email user tidak tersedia');
-    const panels = await getCurrentPanels({ email: user.email });
-    const container = document.getElementById('panelList');
-    container.innerHTML = '';
 
-    panels.forEach(panel => {
-        const card = document.createElement('div');
-        card.classList.add('panel-card');
-        card.innerHTML = `<i class="fas fa-server"></i> ${panel.name || panel.serverId}`;
-        card.addEventListener('click', () => showPanelDetail(panel));
-        container.appendChild(card);
-    });
+    try {
+        const response = await getCurrentPanels({ email: user.email });
+        const panels = response.panels || [];
+        const container = document.getElementById('panelList');
+        container.innerHTML = '';
+
+        panels.forEach(panel => {
+            const card = document.createElement('div');
+            card.classList.add('panel-card');
+            card.innerHTML = `<i class="fas fa-server"></i> ${panel.username || panel.serverId}`;
+            card.addEventListener('click', () => showPanelDetail(panel));
+            container.appendChild(card);
+        });
+    } catch (err) {
+        console.error('[renderPanels] Error:', err);
+        showToast('Gagal memuat daftar panel', 'error');
+    }
 }
 
 function showPanelDetail(panel) {
@@ -735,15 +742,20 @@ function showPanelDetail(panel) {
     detailsContainer.innerHTML = '';
 
     for (const key in panel) {
+        if (!panel.hasOwnProperty(key)) continue;
+        let value = panel[key];
+        if (key === 'createdAt' && value?._seconds) {
+            value = new Date(value._seconds * 1000).toLocaleString();
+        }
         const div = document.createElement('div');
         div.innerHTML = `
-          <span><i class="fas fa-key"></i> ${key}: ${panel[key]}</span>
-          <button data-value="${panel[key]}"><i class="fas fa-copy"></i></button>
+          <span><i class="fas fa-key"></i> ${key}: ${value}</span>
+          <button data-value="${value}"><i class="fas fa-copy"></i></button>
         `;
         div.querySelector('button').addEventListener('click', (e) => {
-            const value = e.target.dataset.value || e.target.closest('button').dataset.value;
-            navigator.clipboard.writeText(value);
-            showToast('Tersalin: ' + value, 'info');
+            const copyValue = e.target.dataset.value || e.target.closest('button').dataset.value;
+            navigator.clipboard.writeText(copyValue);
+            showToast('Tersalin: ' + copyValue, 'info');
         });
         detailsContainer.appendChild(div);
     }
@@ -751,13 +763,13 @@ function showPanelDetail(panel) {
     const deleteBtn = document.getElementById('deletePanelBtn');
     deleteBtn.onclick = async () => {
         try {
-            await deletePanel({ userId: user.id || user.email, serverId: panel.serverId });
+            await deletePanel({ userId: panel.userId, serverId: panel.serverId });
             modal.style.display = 'none';
             renderPanels();
-            alert('Panel berhasil dihapus');
+            showToast('Panel berhasil dihapus', 'success');
         } catch (err) {
             console.error(err);
-            alert('Gagal hapus panel');
+            showToast('Gagal hapus panel', 'error');
         }
     };
 
