@@ -819,18 +819,17 @@ panelForm.addEventListener("submit", async (e) => {
 
     const submitBtn = panelForm.querySelector("button[type='submit']");
     const icon = submitBtn.querySelector("i");
-    const btnText = submitBtn.querySelector("span") || submitBtn;
+    const btnText = submitBtn.querySelector("span");
 
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
-    const ram = document.querySelector("input[name='ram']:checked')?.value;
+    const ram = document.querySelector("input[name='ram']:checked")?.value;
 
     if (!username) return showToast('Username tidak boleh kosong', 'warning');
     if (!password) return showToast('Password tidak boleh kosong', 'warning');
     if (!ram) return showToast('Silahkan pilih RAM', 'warning');
     if (!user || !user.email) return showToast('Data user tidak tersedia', 'error');
 
-    // Aktifkan spinner
     submitBtn.disabled = true;
     if (btnText) btnText.style.display = 'none';
     icon.classList.remove('fa-paper-plane');
@@ -843,7 +842,7 @@ panelForm.addEventListener("submit", async (e) => {
         renderPanels();
         panelForm.reset();
     } catch (err) {
-        showToast(err.message, 'error');
+        showToast(err.message || 'Terjadi kesalahan', 'error');
     } finally {
         submitBtn.disabled = false;
         if (btnText) btnText.style.display = 'inline';
