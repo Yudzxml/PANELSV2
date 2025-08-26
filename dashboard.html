@@ -348,19 +348,38 @@ header i,
 <style>
 /* Panel Container */
 #panelContainer {
-    background: rgba(30,30,30,0.9);
-    border: 1px solid #333;
+    background: rgba(20,20,20,0.95);
     border-radius: 16px;
-    padding: 1.5rem;
-    margin-top: 2rem;
+    padding: 2rem;
+    width: 320px;
+    text-align: center;
+    border: 1px solid #333;
+    margin: 2rem auto;
+    box-shadow: 0 12px 25px rgba(0,0,0,0.7);
+    transition: all 0.3s ease;
 }
 
 .panel-container-title {
     color: #00aaff;
     font-size: 1.4rem;
     margin-bottom: 1rem;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
 }
+
+/* Toggle Button */
+.toggle-btn {
+    background: none;
+    border: none;
+    color: #00aaff;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+    transition: color 0.2s ease;
+}
+.toggle-btn:hover { color: #0056b3; }
 
 /* Panel List */
 #panelList {
@@ -368,6 +387,7 @@ header i,
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 1.5rem;
     justify-items: center;
+    transition: all 0.3s ease;
 }
 
 /* Panel Card */
@@ -389,7 +409,6 @@ header i,
     transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
-
 .panel-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 12px 30px rgba(0,0,0,0.6);
@@ -404,7 +423,7 @@ header i,
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.85);
     z-index: 10000;
     display: flex;
     align-items: center;
@@ -417,7 +436,7 @@ header i,
     border: 1px solid #333;
     border-radius: 16px;
     width: 400px;
-    max-width: 100%;
+    max-width: 95%;
     padding: 1.5rem 2rem;
     box-shadow: 0 12px 30px rgba(0,0,0,0.6);
     display: flex;
@@ -447,10 +466,7 @@ header i,
     color: #ff6b6b;
     transition: color 0.2s ease;
 }
-
-#closeModal:hover {
-    color: #ff3b3b;
-}
+#closeModal:hover { color: #ff3b3b; }
 
 #panelDetails div {
     display: flex;
@@ -459,7 +475,6 @@ header i,
     padding: 0.5rem 0;
     border-bottom: 1px solid #333;
 }
-
 #panelDetails div span {
     color: #00aaff;
     font-size: 0.95rem;
@@ -467,7 +482,6 @@ header i,
     align-items: center;
     gap: 0.5rem;
 }
-
 #panelDetails div button {
     background: linear-gradient(to right, #00aaff, #0056b3);
     border: none;
@@ -482,7 +496,6 @@ header i,
     gap: 0.25rem;
     transition: all 0.2s ease;
 }
-
 #panelDetails div button:hover {
     background: linear-gradient(to right, #0056b3, #003f7f);
 }
@@ -503,7 +516,6 @@ header i,
     align-self: center;
     transition: all 0.2s ease;
 }
-
 #deletePanelBtn:hover {
     background: linear-gradient(to right, #d80000, #a10000);
 }
@@ -578,18 +590,24 @@ header i,
 
 <!-- Panel Container -->
 <div id="panelContainer">
-    <h2 class="panel-container-title">LIST PANEL</h2>
+    <h2 class="panel-container-title">
+        <i class="fas fa-th-large"></i> LIST PANEL
+        <button id="togglePanelList" title="Sembunyikan/Tampilkan" class="toggle-btn">
+            <i class="fas fa-eye"></i>
+        </button>
+    </h2>
     <div id="panelList"></div>
 </div>
 
 <!-- Detail Modal -->
-<div id="panelDetailModal">
+<div id="panelDetailModal" style="display:none">
   <div>
     <span id="closeModal">&times;</span>
     <h3><i class="fas fa-info-circle"></i> Detail Panel</h3>
     <div id="panelDetails"></div>
   </div>
 </div>
+
 
 </div>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -754,6 +772,7 @@ async function getCurrentPanels({ email }) {
 }
 
 
+// Render daftar panel
 async function renderPanels() {
     if (!user || !user.email) return console.error('Email user tidak tersedia');
 
@@ -775,10 +794,7 @@ async function renderPanels() {
             const displayName = panel.username || panel.serverId || 'Panel';
             card.innerHTML = `<i class="fas fa-server"></i> ${displayName}`;
 
-            card.addEventListener('click', () => {
-                showPanelDetail(panel);
-            });
-
+            card.addEventListener('click', () => showPanelDetail(panel));
             container.appendChild(card);
         });
 
@@ -790,6 +806,7 @@ async function renderPanels() {
     }
 }
 
+// Tampilkan detail panel
 function showPanelDetail(panel) {
     if (!panel) return;
 
@@ -797,12 +814,14 @@ function showPanelDetail(panel) {
     const detailsContainer = document.getElementById('panelDetails');
     detailsContainer.innerHTML = '';
 
+    // Header
     const header = document.createElement('h4');
-    header.textContent = panel.username || panel.serverId || 'Panel Detail';
+    header.innerHTML = `<i class="fas fa-server"></i> ${panel.username || panel.serverId || 'Panel Detail'}`;
     header.style.color = '#00aaff';
     header.style.marginBottom = '0.5rem';
     detailsContainer.appendChild(header);
 
+    // List property
     for (const key in panel) {
         if (!panel.hasOwnProperty(key)) continue;
         let value = panel[key];
@@ -817,10 +836,10 @@ function showPanelDetail(panel) {
         div.style.padding = '0.4rem 0';
         div.style.borderBottom = '1px solid #333';
         div.innerHTML = `
-          <span><i class="fas fa-key"></i> ${key}: ${value}</span>
-          <button data-value="${value}"><i class="fas fa-copy"></i></button>
+            <span><i class="fas fa-key"></i> ${key}: ${value}</span>
+            <button data-value="${value}"><i class="fas fa-copy"></i></button>
         `;
-        div.querySelector('button').addEventListener('click', (e) => {
+        div.querySelector('button').addEventListener('click', e => {
             const copyValue = e.target.dataset.value || e.target.closest('button').dataset.value;
             navigator.clipboard.writeText(copyValue);
             showToast('Tersalin: ' + copyValue, 'info');
@@ -828,6 +847,7 @@ function showPanelDetail(panel) {
         detailsContainer.appendChild(div);
     }
 
+    // Tombol hapus
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = 'Hapus Panel';
     deleteBtn.style.cssText = `
@@ -860,13 +880,28 @@ function showPanelDetail(panel) {
     modal.style.display = 'flex';
 }
 
+// Close modal
 document.getElementById('closeModal').onclick = () => {
     document.getElementById('panelDetailModal').style.display = 'none';
 };
 
+// Klik di luar modal
 window.onclick = (e) => {
     const modal = document.getElementById('panelDetailModal');
     if (e.target === modal) modal.style.display = 'none';
+};
+
+// Toggle show/hide panel list
+document.getElementById('togglePanelList').onclick = () => {
+    const list = document.getElementById('panelList');
+    const icon = document.querySelector('#togglePanelList i');
+    if (list.style.display === 'none') {
+        list.style.display = 'grid';
+        icon.className = 'fas fa-eye';
+    } else {
+        list.style.display = 'none';
+        icon.className = 'fas fa-eye-slash';
+    }
 };
 </script>
 </body>
