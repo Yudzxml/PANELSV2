@@ -572,12 +572,11 @@ header i,
 <div id="panelList"></div>
 
 <!-- Detail Modal -->
-<div id="panelDetailModal">
+<div id="panelDetailModal" style="display:none">
   <div>
     <span id="closeModal">&times;</span>
     <h3><i class="fas fa-info-circle"></i> Detail Panel</h3>
     <div id="panelDetails"></div>
-    <button id="deletePanelBtn"><i class="fas fa-trash-alt"></i> Hapus Panel</button>
   </div>
 </div>
 
@@ -754,6 +753,7 @@ async function renderPanels() {
 
         if (panels.length === 0) {
             container.innerHTML = `<p style="color:#aaa; text-align:center;">Belum ada panel tersedia.</p>`;
+            document.getElementById('panelDetailModal').style.display = 'none';
             return;
         }
 
@@ -763,17 +763,18 @@ async function renderPanels() {
             const displayName = panel.username || panel.serverId || 'Panel';
             card.innerHTML = `<i class="fas fa-server"></i> ${displayName}`;
             
-            // Klik baru tampilkan detail
             card.addEventListener('click', () => {
-                if (!panel) return;
                 showPanelDetail(panel);
             });
 
             container.appendChild(card);
         });
+
+        document.getElementById('panelDetailModal').style.display = 'none';
     } catch (err) {
         console.error('[renderPanels] Error:', err);
         showToast('Gagal memuat daftar panel', 'error');
+        document.getElementById('panelDetailModal').style.display = 'none';
     }
 }
 
@@ -784,20 +785,19 @@ function showPanelDetail(panel) {
     const detailsContainer = document.getElementById('panelDetails');
     detailsContainer.innerHTML = '';
 
-    // Header opsional: tampilkan nama panel
     const header = document.createElement('h4');
     header.textContent = panel.username || panel.serverId || 'Panel Detail';
     header.style.color = '#00aaff';
     header.style.marginBottom = '0.5rem';
     detailsContainer.appendChild(header);
 
-    // Tampilkan detail panel
     for (const key in panel) {
         if (!panel.hasOwnProperty(key)) continue;
         let value = panel[key];
         if (key === 'createdAt' && value?._seconds) {
             value = new Date(value._seconds * 1000).toLocaleString();
         }
+
         const div = document.createElement('div');
         div.style.display = 'flex';
         div.style.justifyContent = 'space-between';
@@ -816,36 +816,43 @@ function showPanelDetail(panel) {
         detailsContainer.appendChild(div);
     }
 
-    // Tombol hapus
-    const deleteBtn = document.getElementById('deletePanelBtn');
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Hapus Panel';
+    deleteBtn.style.cssText = `
+        background: linear-gradient(to right, #ff6b6b, #d80000);
+        border: none;
+        padding: 0.55rem 1.2rem;
+        border-radius: 12px;
+        color: #fff;
+        cursor: pointer;
+        font-size: 0.95rem;
+        margin-top: 1rem;
+        align-self: center;
+    `;
     deleteBtn.onclick = async () => {
-    const userId = String(panel.userId || '');
-    const serverId = String(panel.serverId || '');
+        const userId = String(panel.userId || '');
+        const serverId = String(panel.serverId || '');
+        if (!userId || !serverId) return showToast('Data panel tidak lengkap', 'error');
+        try {
+            await deletePanel({ userId, serverId });
+            modal.style.display = 'none';
+            renderPanels();
+            showToast('Panel berhasil dihapus', 'success');
+        } catch (err) {
+            console.error(err);
+            showToast('Gagal hapus panel', 'error');
+        }
+    };
+    detailsContainer.appendChild(deleteBtn);
 
-    if (!userId || !serverId) {
-        return showToast('Data panel tidak lengkap', 'error');
-    }
-
-    try {
-        await deletePanel({ userId, serverId });
-        modal.style.display = 'none';
-        renderPanels();
-        showToast('Panel berhasil dihapus', 'success');
-    } catch (err) {
-        console.error(err);
-        showToast('Gagal hapus panel', 'error');
-    }
-};
-
+    // baru tampilkan modal
     modal.style.display = 'flex';
 }
 
-// Close modal
 document.getElementById('closeModal').onclick = () => {
     document.getElementById('panelDetailModal').style.display = 'none';
 };
 
-// Klik di luar modal
 window.onclick = (e) => {
     const modal = document.getElementById('panelDetailModal');
     if (e.target === modal) modal.style.display = 'none';
