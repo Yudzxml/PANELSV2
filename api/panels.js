@@ -63,19 +63,33 @@ async function getCurrentPanels(email) {
   }
 }
 
-async function findPanelOwner(userId, serverId) {
+async function findPanelOwner(email, userId, serverId) {
   try {
-    console.log('[findPanelOwner] Mencari pemilik panel:', { userId, serverId });
-    const snapshot = await db.collection('users').get();
-    for (const doc of snapshot.docs) {
-      const panelDoc = await doc.ref.collection('panels').doc(serverId).get();
-      if (panelDoc.exists && panelDoc.data().userId === userId) {
-        console.log('[findPanelOwner] Pemilik ditemukan:', doc.id);
-        return doc.id;
-      }
+    console.log('[findPanelOwner] Mencari pemilik panel:', { email, userId, serverId });
+
+    // Cari user langsung dari email
+    const userDoc = await db.collection('users').doc(email).get();
+    if (!userDoc.exists) {
+      console.log('[findPanelOwner] User tidak ditemukan dengan email:', email);
+      return null;
     }
-    console.log('[findPanelOwner] Pemilik tidak ditemukan');
-    return null;
+
+    // Cari panel berdasarkan serverId di subcollection user
+    const panelDoc = await userDoc.ref.collection('panels').doc(serverId).get();
+    if (!panelDoc.exists) {
+      console.log('[findPanelOwner] Panel tidak ditemukan untuk serverId:', serverId);
+      return null;
+    }
+
+    // Validasi userId panel
+    const panelData = panelDoc.data();
+    if (panelData.userId !== userId) {
+      console.log('[findPanelOwner] UserId tidak cocok. Panel userId:', panelData.userId, 'Expected:', userId);
+      return null;
+    }
+
+    console.log('[findPanelOwner] Pemilik valid:', { email, userId, serverId });
+    return { email, userId, serverId }; // return tiga data
   } catch (err) {
     console.error('[findPanelOwner] Error:', err.message || err);
     throw new Error('Gagal mencari pemilik panel: ' + (err.message || 'Unknown error'));
@@ -255,18 +269,25 @@ module.exports = async function handler(req, res) {
 },
 
       panel_delete: async () => {
-        if (method !== 'DELETE') return res.status(405).json({ error: 'Method DELETE diperlukan' });
-        const { userId, serverId } = req.body;
-        if (!userId || !serverId) return res.status(400).json({ error: 'Field userId dan serverId wajib diisi' });
+  if (method !== 'DELETE') {
+    return res.status(405).json({ error: 'Method DELETE diperlukan' });
+  }
 
-        const emailFound = await findPanelOwner(userId, serverId);
-        if (!emailFound) return res.status(404).json({ error: 'Panel tidak ditemukan' });
+  const { email, userId, serverId } = req.body;
+  if (!email || !userId || !serverId) {
+    return res.status(400).json({ error: 'Field email, userId, dan serverId wajib diisi' });
+  }
 
-        await deletePanelAPI({ userId, serverId });
-        await db.collection('users').doc(emailFound).collection('panels').doc(serverId).delete();
+  const owner = await findPanelOwner(email, userId, serverId);
+  if (!owner) {
+    return res.status(404).json({ error: 'Panel tidak ditemukan atau tidak cocok' });
+  }
 
-        return res.json({ message: 'Panel berhasil dihapus' });
-      },
+  await deletePanelAPI({ userId, serverId });
+  await db.collection('users').doc(owner.email).collection('panels').doc(owner.serverId).delete();
+
+  return res.json({ message: 'Panel berhasil dihapus' });
+}
 
       panel_current: async () => {
         if (method !== 'GET') return res.status(405).json({ error: 'Method GET diperlukan' });
