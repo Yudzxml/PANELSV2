@@ -349,14 +349,18 @@ header i,
 /* Panel Container */
 #panelContainer {
     background: rgba(20,20,20,0.95);
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 2rem;
     width: 320px;
     text-align: center;
     border: 1px solid #333;
-    margin: 2rem auto;
-    box-shadow: 0 12px 25px rgba(0,0,0,0.7);
-    transition: all 0.3s ease;
+    margin-top: 0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+}
+
+#panelContainer:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.7);
 }
 
 .panel-container-title {
@@ -616,12 +620,13 @@ let user = null;
 
 function loadUserData() {
     const loginInfo = localStorage.getItem('loginInfo');
+    /**
     if (!loginInfo) {
         showToast('Silahkan login terlebih dahulu.', 'warning');
         setTimeout(() => window.location.href = 'index.html', 2000);
         return;
     }
-
+**/
     try {
         user = JSON.parse(loginInfo) || {};
         document.getElementById('name').textContent = user.email || 'email@gmail.com';
