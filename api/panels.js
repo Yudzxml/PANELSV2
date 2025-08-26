@@ -269,24 +269,44 @@ module.exports = async function handler(req, res) {
 },
 
       panel_delete: async () => {
-  if (method !== 'DELETE') {
-    return res.status(405).json({ error: 'Method DELETE diperlukan' });
+  try {
+    if (method !== 'DELETE') {
+      return res.status(405).json({ error: 'Method DELETE diperlukan' });
+    }
+
+    const { email, userId, serverId } = req.body;
+    if (!email || !userId || !serverId) {
+      return res.status(400).json({ error: 'Field email, userId, dan serverId wajib diisi' });
+    }
+
+    // Pastikan userId & serverId adalah number
+    const uid = Number(userId);
+    const sid = Number(serverId);
+    if (isNaN(uid) || isNaN(sid)) {
+      return res.status(400).json({ error: 'userId dan serverId harus angka' });
+    }
+
+    const owner = await findPanelOwner(email, uid, sid);
+    if (!owner) {
+      return res.status(404).json({ error: 'Panel tidak ditemukan atau tidak cocok' });
+    }
+
+    // Hapus panel dari API
+    await deletePanelAPI({ userId: uid, serverId: sid });
+
+    // Hapus panel di Firestore (doc() harus string)
+    await db.collection('users')
+      .doc(owner.email)
+      .collection('panels')
+      .doc(String(owner.serverId))
+      .delete();
+
+    return res.json({ message: 'Panel berhasil dihapus' });
+
+  } catch (err) {
+    console.error('Handler Error:', err);
+    return res.status(500).json({ error: 'Terjadi kesalahan pada server' });
   }
-
-  const { email, userId, serverId } = req.body;
-  if (!email || !userId || !serverId) {
-    return res.status(400).json({ error: 'Field email, userId, dan serverId wajib diisi' });
-  }
-
-  const owner = await findPanelOwner(email, userId, serverId);
-  if (!owner) {
-    return res.status(404).json({ error: 'Panel tidak ditemukan atau tidak cocok' });
-  }
-
-  await deletePanelAPI({ userId, serverId });
-  await db.collection('users').doc(owner.email).collection('panels').doc(owner.serverId).delete();
-
-  return res.json({ message: 'Panel berhasil dihapus' });
 },
 
       panel_current: async () => {
