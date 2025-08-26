@@ -348,72 +348,90 @@ header i,
 <style>
 /* Panel List */
 #panelList {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.5rem;
+    justify-items: center;
     margin-top: 2rem;
+    padding: 0 1rem;
 }
 
+/* Panel Card */
 .panel-card {
-    background: rgba(20,20,20,0.95);
+    background: rgba(25,25,25,0.95);
     border: 1px solid #333;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 1rem 1.5rem;
-    min-width: 180px;
+    width: 100%;
+    max-width: 220px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     font-size: 1rem;
+    font-weight: 500;
     color: #00aaff;
     transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
 .panel-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
-    background: rgba(20,20,20,1);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    background: rgba(25,25,25,1);
 }
 
 /* Detail Modal */
 #panelDetailModal {
-    display: none; /* default hidden */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.8);
     z-index: 10000;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 1rem;
 }
 
+/* Modal Content */
 #panelDetailModal > div {
-    background: rgba(20,20,20,0.95);
+    background: rgba(25,25,25,0.95);
     border: 1px solid #333;
-    border-radius: 12px;
-    padding: 2rem;
+    border-radius: 16px;
     width: 400px;
-    max-width: 90%;
-    text-align: left;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
-    position: relative;
+    max-width: 100%;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    animation: fadeIn 0.3s ease;
+    position: relative;
+    animation: fadeIn 0.25s ease;
 }
 
-/* Close button */
+/* Modal Header */
+#panelDetailModal h3 {
+    font-size: 1.2rem;
+    color: #00aaff;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 0.25rem;
+}
+
+/* Close Button */
 #closeModal {
     position: absolute;
     top: 1rem;
     right: 1rem;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     cursor: pointer;
     color: #ff6b6b;
     transition: color 0.2s ease;
@@ -423,7 +441,7 @@ header i,
     color: #ff3b3b;
 }
 
-/* Panel Details */
+/* Panel Details Body */
 #panelDetails div {
     display: flex;
     justify-content: space-between;
@@ -443,11 +461,11 @@ header i,
 #panelDetails div button {
     background: linear-gradient(to right, #00aaff, #0056b3);
     border: none;
-    padding: 0.25rem 0.5rem;
-    border-radius: 6px;
+    padding: 0.3rem 0.6rem;
+    border-radius: 8px;
     color: #fff;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -463,8 +481,8 @@ header i,
 #deletePanelBtn {
     background: linear-gradient(to right, #ff6b6b, #d80000);
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
+    padding: 0.55rem 1.2rem;
+    border-radius: 12px;
     color: #fff;
     cursor: pointer;
     font-size: 0.95rem;
@@ -473,6 +491,7 @@ header i,
     justify-content: center;
     gap: 0.5rem;
     margin-top: 1rem;
+    align-self: center;
     transition: all 0.2s ease;
 }
 
@@ -482,7 +501,7 @@ header i,
 
 /* Modal animation */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
+    from { opacity: 0; transform: translateY(-15px); }
     to { opacity: 1; transform: translateY(0); }
 }
 </style>
@@ -733,11 +752,23 @@ async function renderPanels() {
         const container = document.getElementById('panelList');
         container.innerHTML = '';
 
+        if (panels.length === 0) {
+            container.innerHTML = `<p style="color:#aaa; text-align:center;">Belum ada panel tersedia.</p>`;
+            return;
+        }
+
         panels.forEach(panel => {
             const card = document.createElement('div');
             card.classList.add('panel-card');
-            card.innerHTML = `<i class="fas fa-server"></i> ${panel.username || panel.serverId}`;
-            card.addEventListener('click', () => showPanelDetail(panel));
+            const displayName = panel.username || panel.serverId || 'Panel';
+            card.innerHTML = `<i class="fas fa-server"></i> ${displayName}`;
+            
+            // Klik baru tampilkan detail
+            card.addEventListener('click', () => {
+                if (!panel) return;
+                showPanelDetail(panel);
+            });
+
             container.appendChild(card);
         });
     } catch (err) {
@@ -747,10 +778,20 @@ async function renderPanels() {
 }
 
 function showPanelDetail(panel) {
+    if (!panel) return;
+
     const modal = document.getElementById('panelDetailModal');
     const detailsContainer = document.getElementById('panelDetails');
     detailsContainer.innerHTML = '';
 
+    // Header opsional: tampilkan nama panel
+    const header = document.createElement('h4');
+    header.textContent = panel.username || panel.serverId || 'Panel Detail';
+    header.style.color = '#00aaff';
+    header.style.marginBottom = '0.5rem';
+    detailsContainer.appendChild(header);
+
+    // Tampilkan detail panel
     for (const key in panel) {
         if (!panel.hasOwnProperty(key)) continue;
         let value = panel[key];
@@ -758,6 +799,11 @@ function showPanelDetail(panel) {
             value = new Date(value._seconds * 1000).toLocaleString();
         }
         const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+        div.style.padding = '0.4rem 0';
+        div.style.borderBottom = '1px solid #333';
         div.innerHTML = `
           <span><i class="fas fa-key"></i> ${key}: ${value}</span>
           <button data-value="${value}"><i class="fas fa-copy"></i></button>
@@ -770,26 +816,36 @@ function showPanelDetail(panel) {
         detailsContainer.appendChild(div);
     }
 
+    // Tombol hapus
     const deleteBtn = document.getElementById('deletePanelBtn');
     deleteBtn.onclick = async () => {
-        try {
-            await deletePanel({ userId: panel.userId, serverId: panel.serverId });
-            modal.style.display = 'none';
-            renderPanels();
-            showToast('Panel berhasil dihapus', 'success');
-        } catch (err) {
-            console.error(err);
-            showToast('Gagal hapus panel', 'error');
-        }
-    };
+    const userId = String(panel.userId || '');
+    const serverId = String(panel.serverId || '');
 
-    modal.style.display = 'block';
+    if (!userId || !serverId) {
+        return showToast('Data panel tidak lengkap', 'error');
+    }
+
+    try {
+        await deletePanel({ userId, serverId });
+        modal.style.display = 'none';
+        renderPanels();
+        showToast('Panel berhasil dihapus', 'success');
+    } catch (err) {
+        console.error(err);
+        showToast('Gagal hapus panel', 'error');
+    }
+};
+
+    modal.style.display = 'flex';
 }
 
+// Close modal
 document.getElementById('closeModal').onclick = () => {
     document.getElementById('panelDetailModal').style.display = 'none';
 };
 
+// Klik di luar modal
 window.onclick = (e) => {
     const modal = document.getElementById('panelDetailModal');
     if (e.target === modal) modal.style.display = 'none';
