@@ -219,6 +219,7 @@ header i,
 }
 </style>
 <style>
+/* Panel utama */
 .form-panel {
     background: rgba(20,20,20,0.95);
     border-radius: 12px;
@@ -228,12 +229,14 @@ header i,
     border: 1px solid #333;
     margin-top: 0;
     box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .form-panel:hover {
     transform: translateY(-5px);
     box-shadow: 0 15px 30px rgba(0,0,0,0.7);
 }
 
+/* Judul */
 .form-panel h3 {
     margin-bottom: 1.5rem;
     color: #00aaff;
@@ -241,6 +244,7 @@ header i,
     text-align: center;
 }
 
+/* Form group */
 .form-group {
     margin-bottom: 1.25rem;
     display: flex;
@@ -249,12 +253,10 @@ header i,
     color: #ddd;
     font-size: 0.95rem;
 }
-
 .form-group label {
     font-weight: bold;
     color: #ccc;
 }
-
 .form-group input[type="text"],
 .form-group input[type="password"] {
     width: 100%;
@@ -265,36 +267,28 @@ header i,
     color: #fff;
     font-size: 0.95rem;
     outline: none;
-    transition: border 0.2s ease;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
 }
-
 .form-group input[type="text"]:focus,
 .form-group input[type="password"]:focus {
     border: 1px solid #00aaff;
     box-shadow: 0 0 5px #00aaff;
 }
-
-.form-group input[type="checkbox"] {
-    margin-right: 0.5rem;
-    accent-color: #00aaff;
-    transform: scale(1.1);
-    cursor: pointer;
-}
-
+.form-group input[type="checkbox"],
 .form-group input[type="radio"] {
     accent-color: #00aaff;
     transform: scale(1.1);
     cursor: pointer;
-    margin-right: 0.4rem;
 }
+.form-group input[type="checkbox"] { margin-right: 0.5rem; }
+.form-group input[type="radio"] { margin-right: 0.4rem; }
 
-/* Container RAM rapi */
+/* RAM grid */
 .ram-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
 }
-
 .ram-grid label {
     background: #1a1a1a;
     padding: 0.5rem 0.8rem;
@@ -307,7 +301,6 @@ header i,
     font-weight: normal;
     color: #eee;
 }
-
 .ram-grid input:checked + span {
     background: #00aaff;
     color: #fff;
@@ -321,12 +314,12 @@ header i,
     opacity: 0;
     transition: all 0.3s ease;
 }
-
 #ramOptions.show {
     max-height: 500px;
     opacity: 1;
 }
 
+/* Tombol submit */
 .btn-submit {
     width: 100%;
     padding: 0.75rem;
@@ -339,10 +332,33 @@ header i,
     cursor: pointer;
     transition: all 0.2s ease;
     margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
-
 .btn-submit:hover {
     background: linear-gradient(to right, #0056b3, #003f7f);
+}
+
+/* Icon tombol */
+.btn-submit .btn-icon {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Spinner animasi */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.btn-spinner {
+    animation: spin 1s linear infinite;
+    font-size: 1rem; /* Sesuaikan ukuran spinner */
+}
+
+/* Optional: fade transition untuk teks tombol saat spinner muncul */
+.btn-text {
+    transition: opacity 0.2s ease;
 }
 </style>
 <style>
@@ -671,7 +687,8 @@ header i,
     </div>
 
 <button type="submit" class="btn-submit">
-  <i class="fa-solid fa-paper-plane"></i> Submit
+  <i class="fa-solid fa-paper-plane btn-icon"></i>
+  <span class="btn-text">Submit</span>
 </button>
   </form>
 </div>
@@ -799,22 +816,39 @@ async function createPanel({ email, username, password, ram }) {
 
 panelForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    const submitBtn = panelForm.querySelector("button[type='submit']");
+    const icon = submitBtn.querySelector("i");
+    const btnText = submitBtn.querySelector("span") || submitBtn;
+
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
-    const ram = document.querySelector("input[name='ram']:checked")?.value;
+    const ram = document.querySelector("input[name='ram']:checked')?.value;
 
     if (!username) return showToast('Username tidak boleh kosong', 'warning');
     if (!password) return showToast('Password tidak boleh kosong', 'warning');
     if (!ram) return showToast('Silahkan pilih RAM', 'warning');
     if (!user || !user.email) return showToast('Data user tidak tersedia', 'error');
 
+    // Aktifkan spinner
+    submitBtn.disabled = true;
+    if (btnText) btnText.style.display = 'none';
+    icon.classList.remove('fa-paper-plane');
+    icon.classList.add('fa-spinner', 'fa-spin');
+
     try {
         const result = await createPanel({ email: user.email, username, password, ram });
         showToast('Panel berhasil dibuat!', 'success');
         console.log(result);
         renderPanels();
+        panelForm.reset();
     } catch (err) {
         showToast(err.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        if (btnText) btnText.style.display = 'inline';
+        icon.classList.remove('fa-spinner', 'fa-spin');
+        icon.classList.add('fa-paper-plane');
     }
 });
 
