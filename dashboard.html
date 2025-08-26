@@ -352,7 +352,7 @@ header i,
     flex-wrap: wrap;
     gap: 1rem;
     justify-content: center;
-    padding: 2rem;
+    margin-top: 2rem;
 }
 
 .panel-card {
@@ -361,28 +361,25 @@ header i,
     border-radius: 12px;
     padding: 1rem 1.5rem;
     min-width: 180px;
-    max-width: 220px;
-    text-align: center;
-    font-size: 0.95rem;
-    color: #fff;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.2s ease;
+    font-size: 1rem;
+    color: #00aaff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
 .panel-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 25px rgba(0,0,0,0.6);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
     background: rgba(20,20,20,1);
 }
 
 /* Detail Modal */
 #panelDetailModal {
-    display: none;
+    display: none; /* default hidden */
     position: fixed;
     top: 0;
     left: 0;
@@ -390,54 +387,56 @@ header i,
     height: 100%;
     background: rgba(0,0,0,0.75);
     z-index: 10000;
+    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
 }
 
 #panelDetailModal > div {
     background: rgba(20,20,20,0.95);
+    border: 1px solid #333;
     border-radius: 12px;
     padding: 2rem;
-    width: 90%;
-    max-width: 450px;
+    width: 400px;
+    max-width: 90%;
     text-align: left;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
     position: relative;
-}
-
-#panelDetailModal h3 {
-    color: #00aaff;
-    font-size: 1.25rem;
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    animation: fadeIn 0.3s ease;
 }
 
-#panelDetailModal #closeModal {
+/* Close button */
+#closeModal {
     position: absolute;
     top: 1rem;
     right: 1rem;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     cursor: pointer;
-    color: #fff;
+    color: #ff6b6b;
     transition: color 0.2s ease;
 }
 
-#panelDetailModal #closeModal:hover {
-    color: #00aaff;
+#closeModal:hover {
+    color: #ff3b3b;
 }
 
+/* Panel Details */
 #panelDetails div {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #1a1a1a;
-    padding: 0.5rem 1rem;
-    margin-bottom: 0.5rem;
-    border-radius: 8px;
-    font-size: 0.9rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #333;
+}
+
+#panelDetails div span {
+    color: #00aaff;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
 
@@ -448,6 +447,11 @@ header i,
     border-radius: 6px;
     color: #fff;
     cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
     transition: all 0.2s ease;
 }
 
@@ -455,25 +459,31 @@ header i,
     background: linear-gradient(to right, #0056b3, #003f7f);
 }
 
+/* Delete Button */
 #deletePanelBtn {
-    margin-top: 1rem;
-    width: 100%;
     background: linear-gradient(to right, #ff6b6b, #d80000);
     border: none;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
     border-radius: 8px;
     color: #fff;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.95rem;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    margin-top: 1rem;
     transition: all 0.2s ease;
 }
 
 #deletePanelBtn:hover {
-    background: linear-gradient(to right, #d80000, #a30000);
+    background: linear-gradient(to right, #d80000, #a10000);
+}
+
+/* Modal animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 </style>
 </head>
