@@ -346,14 +346,28 @@ header i,
 }
 </style>
 <style>
+/* Panel Container */
+#panelContainer {
+    background: rgba(30,30,30,0.9);
+    border: 1px solid #333;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.panel-container-title {
+    color: #00aaff;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
 /* Panel List */
 #panelList {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 1.5rem;
     justify-items: center;
-    margin-top: 2rem;
-    padding: 0 1rem;
 }
 
 /* Panel Card */
@@ -398,7 +412,6 @@ header i,
     padding: 1rem;
 }
 
-/* Modal Content */
 #panelDetailModal > div {
     background: rgba(25,25,25,0.95);
     border: 1px solid #333;
@@ -414,7 +427,6 @@ header i,
     animation: fadeIn 0.25s ease;
 }
 
-/* Modal Header */
 #panelDetailModal h3 {
     font-size: 1.2rem;
     color: #00aaff;
@@ -426,7 +438,6 @@ header i,
     padding-bottom: 0.25rem;
 }
 
-/* Close Button */
 #closeModal {
     position: absolute;
     top: 1rem;
@@ -441,7 +452,6 @@ header i,
     color: #ff3b3b;
 }
 
-/* Panel Details Body */
 #panelDetails div {
     display: flex;
     justify-content: space-between;
@@ -477,7 +487,6 @@ header i,
     background: linear-gradient(to right, #0056b3, #003f7f);
 }
 
-/* Delete Button */
 #deletePanelBtn {
     background: linear-gradient(to right, #ff6b6b, #d80000);
     border: none;
@@ -499,7 +508,6 @@ header i,
     background: linear-gradient(to right, #d80000, #a10000);
 }
 
-/* Modal animation */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-15px); }
     to { opacity: 1; transform: translateY(0); }
@@ -568,11 +576,14 @@ header i,
   </form>
 </div>
 
-<!-- List Panel -->
-<div id="panelList"></div>
+<!-- Panel Container -->
+<div id="panelContainer">
+    <h2 class="panel-container-title">LIST PANEL</h2>
+    <div id="panelList"></div>
+</div>
 
 <!-- Detail Modal -->
-<div id="panelDetailModal" style="display:none">
+<div id="panelDetailModal">
   <div>
     <span id="closeModal">&times;</span>
     <h3><i class="fas fa-info-circle"></i> Detail Panel</h3>
@@ -742,6 +753,7 @@ async function getCurrentPanels({ email }) {
     }
 }
 
+
 async function renderPanels() {
     if (!user || !user.email) return console.error('Email user tidak tersedia');
 
@@ -762,7 +774,7 @@ async function renderPanels() {
             card.classList.add('panel-card');
             const displayName = panel.username || panel.serverId || 'Panel';
             card.innerHTML = `<i class="fas fa-server"></i> ${displayName}`;
-            
+
             card.addEventListener('click', () => {
                 showPanelDetail(panel);
             });
@@ -845,7 +857,6 @@ function showPanelDetail(panel) {
     };
     detailsContainer.appendChild(deleteBtn);
 
-    // baru tampilkan modal
     modal.style.display = 'flex';
 }
 
