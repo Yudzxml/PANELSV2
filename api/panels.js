@@ -287,7 +287,7 @@ module.exports = async function handler(req, res) {
   await db.collection('users').doc(owner.email).collection('panels').doc(owner.serverId).delete();
 
   return res.json({ message: 'Panel berhasil dihapus' });
-}
+},
 
       panel_current: async () => {
         if (method !== 'GET') return res.status(405).json({ error: 'Method GET diperlukan' });
