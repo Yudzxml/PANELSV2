@@ -970,7 +970,7 @@ function showPanelDetail(panel) {
         div.style.borderBottom = '1px solid #333';
         div.innerHTML = `
             <span><i class="fas fa-key"></i> ${key}: ${value}</span>
-            <button data-value="${value}"><i class="fas fa-copy"></i></button>
+            <button data-value="${value}" class="copy-btn"><i class="fas fa-copy"></i></button>
         `;
         div.querySelector('button').addEventListener('click', e => {
             const copyValue = e.target.dataset.value || e.target.closest('button').dataset.value;
@@ -980,39 +980,62 @@ function showPanelDetail(panel) {
         detailsContainer.appendChild(div);
     }
 
-    // Tombol hapus
+    // Tombol hapus dengan spinner
     const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Hapus Panel';
+    deleteBtn.className = 'btn-delete';
+    deleteBtn.innerHTML = `<i class="fas fa-trash btn-icon"></i> <span class="btn-text">Hapus Panel</span>`;
     deleteBtn.style.cssText = `
-        background: linear-gradient(to right, #ff6b6b, #d80000);
-        border: none;
-        padding: 0.55rem 1.2rem;
-        border-radius: 12px;
-        color: #fff;
-        cursor: pointer;
-        font-size: 0.95rem;
         margin-top: 1rem;
-        align-self: center;
+        width: 100%;
+        padding: 0.6rem;
+        border-radius: 8px;
+        border: none;
+        background: linear-gradient(to right, #ff6b6b, #d80000);
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
     `;
+
     deleteBtn.onclick = async () => {
-    const email = user?.email || '';
-    const userId = panel.userId || '';
-    const serverId = panel.serverId || '';
+        const icon = deleteBtn.querySelector('.btn-icon');
+        const text = deleteBtn.querySelector('.btn-text');
 
-    if (!email || !userId || !serverId) return showToast('Data panel tidak lengkap', 'error');
+        const email = user?.email || '';
+        const userId = panel.userId || '';
+        const serverId = panel.serverId || '';
 
-    try {
-        await deletePanel({ email, userId, serverId });
-        modal.style.display = 'none';
-        renderPanels();
-        showToast('Panel berhasil dihapus', 'success');
-    } catch (err) {
-        console.error(err);
-        showToast('Gagal hapus panel', 'error');
-    }
-};
+        if (!email || !userId || !serverId) return showToast('Data panel tidak lengkap', 'error');
+
+        // Aktifkan spinner
+        deleteBtn.disabled = true;
+        if (text) text.style.display = 'none';
+        icon.classList.remove('fa-trash');
+        icon.classList.add('fa-spinner', 'fa-spin');
+
+        try {
+            await deletePanel({ email, userId, serverId });
+            modal.style.display = 'none';
+            renderPanels();
+            showToast('Panel berhasil dihapus', 'success');
+        } catch (err) {
+            console.error(err);
+            showToast('Gagal hapus panel', 'error');
+        } finally {
+            // Kembalikan tombol ke kondisi awal
+            deleteBtn.disabled = false;
+            if (text) text.style.display = 'inline';
+            icon.classList.remove('fa-spinner', 'fa-spin');
+            icon.classList.add('fa-trash');
+        }
+    };
+
     detailsContainer.appendChild(deleteBtn);
-
     modal.style.display = 'flex';
 }
 
