@@ -713,7 +713,15 @@ function loadUserData() {
 
     try {
         user = JSON.parse(loginInfo) || {};
-        document.getElementById('name').textContent = user.email || 'email@gmail.com';
+        const now = Date.now();
+        if (!user.expired || new Date(user.expired).getTime() < now) {
+            showToast('Sesi Anda telah berakhir. Silahkan login kembali.', 'warning');
+            localStorage.removeItem('loginInfo');
+            setTimeout(() => window.location.href = 'index.html', 2000);
+            return;
+        }
+
+        document.getElementById('name').textContent = (user.email?.split('@')[0]) || 'email@gmail.com';
         document.getElementById('role').textContent = `${user.role || 'User'}`;
         document.getElementById('loginAt').textContent = `Time: ${user.loginAt ? new Date(user.loginAt).toLocaleString() : '-'}`;
         document.getElementById('expired').textContent = `Exp: ${user.expired ? new Date(user.expired).toLocaleDateString() : '-'}`;
