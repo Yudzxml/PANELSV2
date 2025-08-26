@@ -871,8 +871,8 @@ function showPanelDetail(panel) {
     `;
     deleteBtn.onclick = async () => {
     const email = user?.email || '';
-    const userId = String(panel.userId || '');
-    const serverId = String(panel.serverId || '');
+    const userId = panel.userId || '';
+    const serverId = panel.serverId || '';
 
     if (!email || !userId || !serverId) return showToast('Data panel tidak lengkap', 'error');
 
