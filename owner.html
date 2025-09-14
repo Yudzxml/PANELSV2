@@ -541,7 +541,7 @@ async function deleteAllPanel() {
         if(!email) return showToast('Masukkan email Admin untuk menghapus data panel.', 'warning');
         const res = await axios.delete(`${BASE_URL}`, {
           data: {
-          action: 'user_delete_all',
+          action: 'panel_delete_all',
           email
            }
         });
