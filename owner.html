@@ -6,7 +6,7 @@
 <title>Login & Manajemen User</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
 <style>
-  /* ===== GLOBAL RESET & BODY ===== */
+/* ===== GLOBAL RESET & BODY ===== */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { 
     font-family: 'Arial', sans-serif; 
@@ -15,8 +15,8 @@ body {
     min-height: 100vh; 
     position: relative; 
     overflow-x: hidden; 
-    padding-left: 1rem;  /* padding kiri agar kontainer tidak menempel */
-    padding-right: 1rem; /* padding kanan agar kontainer tidak menempel */
+    padding: 1rem; 
+    text-align: center;
 }
 
 /* ===== CANVAS ===== */
@@ -28,118 +28,210 @@ canvas {
     z-index: 0; 
 }
 
-/* ===== TOAST ===== */
-#toast-container { 
-    position: fixed; 
-    top: 1rem; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    z-index: 9999; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 0.75rem; 
-    pointer-events: none; 
+/* Toast container di atas layar */
+#toast-container {
+    position: fixed;
+    top: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
 }
-.toast { 
-    min-width: 250px; 
-    max-width: 350px; 
-    padding: 0.75rem 1rem; 
-    border-radius: 8px; 
-    color: #fff; 
-    font-weight: 500; 
-    box-shadow: 0 6px 15px rgba(0,0,0,0.5); 
-    opacity: 0; 
-    transform: translateY(-20px); 
-    transition: all 0.3s; 
-    pointer-events: auto; 
-    text-align: center; 
+
+/* Style dasar toast */
+.toast {
+    min-width: 250px;
+    max-width: 350px;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+    text-align: center;
 }
-.toast.show { opacity: 1; transform: translateY(0); }
-.toast.success { background: linear-gradient(to right, #00aaff, #0056b3); }
-.toast.error { background: linear-gradient(to right, #ff6b6b, #d80000); }
-.toast.warning { background: linear-gradient(to right, #ffb74d, #ff9800); }
-.toast.info { background: linear-gradient(to right, #5c6bc0, #3949ab); }
-.toast:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
+
+/* Animasi muncul */
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Variasi warna */
+.toast.success {
+    background: linear-gradient(to right, #00aaff, #0056b3);
+}
+
+.toast.error {
+    background: linear-gradient(to right, #ff6b6b, #d80000);
+}
+
+.toast.warning {
+    background: linear-gradient(to right, #ffb74d, #ff9800);
+}
+
+.toast.info {
+    background: linear-gradient(to right, #5c6bc0, #3949ab);
+}
+
+/* Hover bisa dikasih shadow */
+.toast:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+}
+
+/* Icon Styling */
+.profile-card i,
+header i,
+.toast i {
+    color: inherit;
+}
+
+/* ===== BODY & GLOBAL ===== */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #0d0d0d;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;               /* flex centering */
+    justify-content: center;     /* horizontal */
+    align-items: center;         /* vertical */
+    padding: 1rem;
+    margin: 0;
+}
 
 /* ===== LOGIN BOX ===== */
-.login-box { 
-    position: relative; 
-    z-index: 1; 
-    background: rgba(20,20,20,0.95); 
-    padding: 2rem; 
-    border-radius: 12px; 
-    box-shadow: 0 10px 25px rgba(0,0,0,0.6); 
-    width: 100%;          /* responsive width */
-    max-width: 320px;     /* batas maksimal */
-    text-align: center; 
-    border: 1px solid #333; 
-    margin: 3rem auto; 
-    transition: transform 0.3s, box-shadow 0.3s; 
-}
-.login-box:hover { 
-    transform: translateY(-5px); 
-    box-shadow: 0 15px 30px rgba(0,0,0,0.7); 
-}
-.login-box h2 { 
-    margin-bottom: 1.5rem; 
-    color: #00aaff; 
-    font-weight: 600; 
+.login-box {
+    position: relative;
+    z-index: 1;
+    background-color: rgba(20, 20, 20, 0.95);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    width: 320px;
+    max-width: 95%;              /* responsive pada ponsel */
+    text-align: center;
+    color: #fff;
+    border: 1px solid #333;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.input-group { position: relative; margin-bottom: 1rem; }
-.input-group input { 
-    width: 100%; 
-    padding: 0.75rem 0.75rem 0.75rem 2.5rem; 
-    border-radius: 8px; 
-    border: 1px solid #555; 
-    background: #1a1a1a; 
-    color: #fff; 
-    outline: none; 
-    transition: border-color 0.3s, background 0.3s; 
+.login-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.7);
 }
-.input-group input:focus { border-color: #00aaff; background: #222; }
-.input-group i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #00aaff; }
-.input-group i.fa-eye, .input-group i.fa-eye-slash { right: 0.75rem; left: auto; cursor: pointer; }
+
+.login-box h2 {
+    margin-bottom: 1.5rem;
+    color: #00aaff;
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+/* ===== INPUT GROUP ===== */
+.input-group {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background-color: #1a1a1a;
+    color: #fff;
+    outline: none;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.input-group input:focus {
+    border-color: #00aaff;
+    background-color: #222;
+}
+
+.input-group i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #00aaff;
+    font-size: 1.1rem;
+}
+
+.input-group i.fa-eye,
+.input-group i.fa-eye-slash {
+    right: 0.75rem;
+    left: auto;
+    cursor: pointer;
+}
 
 /* ===== BUTTONS ===== */
-button { 
-    width: 100%; 
-    padding: 0.75rem; 
-    border: none; 
-    border-radius: 8px; 
-    background: linear-gradient(to right,#00aaff,#0056b3); 
-    color: #fff; 
-    font-size: 1rem; 
-    font-weight: 600; 
-    cursor: pointer; 
-    transition: all 0.3s; 
+button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(to right, #00aaff, #0056b3);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
-button:hover { 
-    background: linear-gradient(to right,#0056b3,#003f7f); 
-    transform: translateY(-2px); 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
+
+button:hover {
+    background: linear-gradient(to right, #0056b3, #003f7f);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
-p.lupa-password { 
-    margin-top: 10px; 
-    text-align: right; 
-    cursor: pointer; 
-    color: #00aaff; 
-    font-size: 0.9rem; 
-    transition: color 0.3s; 
+
+/* ===== ERROR MESSAGE ===== */
+.error {
+    color: #ff6b6b;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    text-align: left;
 }
-p.lupa-password:hover { color: #0056b3; }
+
+/* ===== LUPA PASSWORD ===== */
+p.lupa-password {
+    margin-top: 10px;
+    text-align: right;
+    cursor: pointer;
+    color: #00aaff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+p.lupa-password:hover {
+    color: #0056b3;
+}
+
+/* ===== MEDIA QUERIES ===== */
+@media (max-width: 400px) {
+    .login-box {
+        width: 90%;
+        padding: 1.5rem;
+    }
+}
 
 /* ===== MANAGEMEN USER ===== */
-h1 { color: #00aaff; text-align: center; margin-bottom: 1.5rem; }
+h1 { color: #00aaff; text-align: center; margin-bottom: 1.5rem; font-size: 1.8rem; }
 .container { 
     background: rgba(20,20,20,0.95); 
-    border-radius: 12px; 
+    border-radius: 15px; 
     padding: 2rem; 
     margin: 1rem auto; 
-    width: 100%;         /* responsive width */
-    max-width: 450px;    /* batas maksimal */
+    width: 100%; 
+    max-width: 480px; 
     border: 1px solid #333; 
-    box-shadow: 0 10px 25px rgba(0,0,0,0.6); 
+    box-shadow: 0 12px 30px rgba(0,0,0,0.7); 
     display: flex; 
     flex-direction: column; 
     gap: 1.5rem; 
@@ -147,16 +239,16 @@ h1 { color: #00aaff; text-align: center; margin-bottom: 1.5rem; }
 }
 .container:hover { 
     transform: translateY(-5px); 
-    box-shadow: 0 15px 30px rgba(0,0,0,0.7); 
+    box-shadow: 0 18px 35px rgba(0,0,0,0.8); 
 }
-.container h2 { color: #00aaff; font-size: 1.5rem; margin-bottom: 1rem; }
+.container h2 { color: #00aaff; font-size: 1.5rem; margin-bottom: 1rem; font-weight: 600; }
 
-.form-group { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+.form-group { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; width: 100%; }
 .form-group label { font-weight: 500; font-size: 0.95rem; color: #fff; }
 .form-group input, .form-group select { 
     width: 100%; 
-    padding: 0.5rem 0.75rem; 
-    border-radius: 8px; 
+    padding: 0.6rem 0.75rem; 
+    border-radius: 10px; 
     border: 1px solid #333; 
     background: #1a1a1a; 
     color: #fff; 
@@ -166,7 +258,7 @@ h1 { color: #00aaff; text-align: center; margin-bottom: 1.5rem; }
 .form-group input:focus, .form-group select:focus { 
     outline: none; 
     border-color: #00aaff; 
-    box-shadow: 0 0 8px rgba(0,170,255,0.5); 
+    box-shadow: 0 0 10px rgba(0,170,255,0.4); 
 }
 
 /* BUTTON TYPES */
@@ -180,7 +272,7 @@ h1 { color: #00aaff; text-align: center; margin-bottom: 1.5rem; }
 /* USER INFO BOX */
 .user-info { 
     background: #1a1a1a; 
-    border-radius: 8px; 
+    border-radius: 10px; 
     border: 1px solid #333; 
     padding: 1rem; 
     text-align: left; 
@@ -193,19 +285,22 @@ h1 { color: #00aaff; text-align: center; margin-bottom: 1.5rem; }
 #userManagement { display: none; }
 
 /* ===== MEDIA QUERIES ===== */
-@media screen and (max-width: 500px) { 
-    .container { padding: 1.5rem; } 
-    .login-box { width: 100%; padding: 1.5rem; } 
+@media screen and (max-width: 600px) { 
+    .container, .login-box { padding: 1.5rem; width: 100%; max-width: 100%; margin: 2rem 0; }
+    h1 { font-size: 1.5rem; }
+    .container h2, .login-box h2 { font-size: 1.3rem; }
+    button { font-size: 0.95rem; padding: 0.65rem; }
 }
 </style>
 </head>
 <body>
+  <div id="toast-container"></div>
 <canvas id="particle-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
 
-<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+ <div id="toast-container"></div>
 
 <!-- LOGIN -->
-<div class="login-box" id="loginBox" style="position:relative;z-index:1;">
+<div class="login-box" id="loginBox">
     <h2>FORM LOGIN</h2>
     <div class="input-group">
         <i class="fa fa-envelope"></i>
@@ -235,6 +330,10 @@ h1 { color: #00aaff; text-align: center; margin-bottom: 1.5rem; }
           <option value="admin">Admin</option>
         </select>
       </div>
+     <div class="form-group">
+  <label>Money:</label>
+  <input type="number" id="money" placeholder="Masukkan nominal uang" min="0">
+</div>
       <div class="form-group"><button id="addBtn">Tambah / Update</button></div>
     </div>
 
@@ -391,21 +490,35 @@ function logout() {
 const BASE_URL = '/api/panels';
 
 async function addUser() {
-    try{
+    try {
         const email = document.getElementById('email')?.value.trim();
         const password = document.getElementById('passwordUser')?.value.trim();
         const activeDays = parseInt(document.getElementById('activeDays')?.value) || 0;
         const role = document.getElementById('role')?.value.trim();
-        if(!email||!password||activeDays<=0||!role) return showToast('Semua field harus diisi dengan benar.', 'warning');
+        const money = parseFloat(document.getElementById('money')?.value) || 0;
+
+        // Validasi input
+        if (!email || !password || activeDays <= 0 || !role) 
+            return showToast('Semua field harus diisi dengan benar.', 'warning');
+        if (money < 0) 
+            return showToast('Nominal uang tidak boleh negatif.', 'warning');
+
+        // Kirim data ke API
         const res = await axios.post(`${BASE_URL}`, {
-          action: 'user_add',
-          email,
-          password,
-          activeDays,
-          role
+            action: 'user_add',
+            email,
+            password,
+            activeDays,
+            role,
+            money
         });
-        showToast('User berhasil ditambahkan/diupdate.', 'success'); console.log(res.data);
-    } catch(err){ showToast(err.response?.data?.message||err.message,'error'); }
+
+        showToast('User berhasil ditambahkan/diupdate.', 'success');
+        console.log(res.data);
+
+    } catch (err) {
+        showToast(err.response?.data?.message || err.message, 'error');
+    }
 }
 
 async function deleteUser() {
