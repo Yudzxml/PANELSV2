@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign-in reseller</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #0d0d0d; /* gelap pekat */
+    overflow: hidden;
+    position: relative;
+}
+
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.login-box {
+    position: relative;
+    z-index: 1;
+    background-color: rgba(20, 20, 20, 0.95); /* gelap transparan */
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    width: 320px;
+    text-align: center;
+    color: #fff;
+    border: 1px solid #333;
+}
+
+.login-box h2 {
+    margin-bottom: 1.5rem;
+    color: #00aaff; /* aksen biru */
+    font-weight: 600;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background-color: #1a1a1a;
+    color: #fff;
+    outline: none;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.input-group input:focus {
+    border-color: #00aaff;
+    background-color: #222;
+}
+
+.input-group i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #00aaff;
+}
+
+.input-group i.fa-eye, 
+.input-group i.fa-eye-slash {
+    right: 0.75rem;
+    left: auto;
+    cursor: pointer;
+}
+
+button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(to right, #00aaff, #0056b3);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+    background: linear-gradient(to right, #0056b3, #003f7f);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.error {
+    color: #ff6b6b;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+p.lupa-password {
+    margin-top: 10px;
+    text-align: right;
+    cursor: pointer;
+    color: #00aaff;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+p.lupa-password:hover {
+    color: #0056b3;
+}
+
+@media (max-width: 400px) {
+    .login-box {
+        width: 90%;
+        padding: 1.5rem;
+    }
+}
+</style>
+<style>
+/* Toast container di atas layar */
+#toast-container {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+}
+
+/* Style dasar toast */
+.toast {
+    min-width: 250px;
+    max-width: 350px;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+    text-align: center;
+}
+
+/* Animasi muncul */
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Variasi warna */
+.toast.success {
+    background: linear-gradient(to right, #00aaff, #0056b3);
+}
+
+.toast.error {
+    background: linear-gradient(to right, #ff6b6b, #d80000);
+}
+
+.toast.warning {
+    background: linear-gradient(to right, #ffb74d, #ff9800);
+}
+
+.toast.info {
+    background: linear-gradient(to right, #5c6bc0, #3949ab);
+}
+
+/* Hover bisa dikasih shadow */
+.toast:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+}
+</style>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+<div id="toast-container"></div>
+
+<div class="login-box">
+    <h2>FORM LOGIN</h2>
+
+    <div class="input-group">
+        <i class="fa fa-envelope"></i>
+        <input type="email" id="email" placeholder="Email" required>
+    </div>
+
+    <div class="input-group" style="position: relative;">
+        <i class="fa fa-lock"></i>
+        <input type="password" id="password" placeholder="Password" required>
+        <i id="togglePwd" class="fa fa-eye" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
+    </div>
+
+    <button onclick="login()">Login</button>
+    <p style="margin-top:10px; text-align:right; cursor:pointer; color:#00aaff;" onclick="forgotPassword()">Lupa Password?</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+const BASE_URL = '/api/panels'; 
+
+async function getUserInfo(email) {
+    if (!email) throw new Error('Email diperlukan');
+    const res = await axios.get(`${BASE_URL}`, {
+  params: {
+    action: 'user_info',
+    email
+  }
+});
+    return res.data;
+}
+async function getServerMaintenance() {
+  try {
+    const res = await axios.get(`${BASE_URL}`, {
+      params: { action: 'panel_health' },
+      timeout: 10000
+    });
+    const data = res.data;
+    return {
+      active: data.active === true,
+      maintenance: data.maintenance === true
+    };
+  } catch {
+    return { active: false, maintenance: true };
+  }
+}
+async function checkAutoLogin() {
+  const loginInfo = localStorage.getItem('loginInfo');
+  if (!loginInfo) return;
+
+  try {
+    const { email, expired } = JSON.parse(loginInfo);
+    const now = new Date();
+
+    if (expired && new Date(expired) < now) {
+      localStorage.removeItem('loginInfo');
+      return;
+    }
+
+    const maintenanceData = await getServerMaintenance();
+    if (maintenanceData.maintenance) {
+      window.location.href = 'maintenance.html';
+    } else {
+      window.location.href = 'dashboard.html';
+    }
+
+  } catch (err) {
+    console.error('Gagal membaca login info', err);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', checkAutoLogin);
+
+async function login() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+
+  if (!email || !password) {
+    showToast('Email dan password wajib diisi.', 'warning');
+    return;
+  }
+
+  try {
+
+    const { user } = await getUserInfo(email);
+    if (!user) {
+      showToast('Email tidak ditemukan.', 'error');
+      return;
+    }
+
+    if (user.password !== password) {
+      showToast('Password salah.', 'warning');
+      return;
+    }
+
+    const now = new Date();
+    if (user.expireAt && new Date(user.expireAt) < now) {
+      showToast('Oops! Akun Anda sudah kedaluwarsa. Hubungi pemilik untuk memperpanjang akses reseller.', 'warning');
+      return;
+    }
+    localStorage.setItem('loginInfo', JSON.stringify({
+      email: user.email,
+      role: user.role,
+      money: user.money,
+      expired: user.expireAt,
+      loginAt: now.toISOString()
+    }));
+    
+    const maintenanceData = await getServerMaintenance();
+    if (maintenanceData.maintenance) {
+      window.location.href = 'maintenance.html';
+      return;
+    }
+
+    window.location.href = 'dashboard.html';
+  } catch (err) {
+    showToast('Terjadi kesalahan saat login.', 'error');
+    console.error(err);
+  }
+}
+
+function showToast(message, type = 'success', duration = 4000) {
+    const container = document.getElementById('toast-container');
+    const existingToast = container.querySelector('.toast');
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+// Toggle visibility password
+document.getElementById('togglePwd').addEventListener('click', () => {
+    const pwdInput = document.getElementById('password');
+    const toggleIcon = document.getElementById('togglePwd');
+    if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        toggleIcon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        pwdInput.type = 'password';
+        toggleIcon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+});
+
+function forgotPassword() {
+    const email = document.getElementById('email').value.trim();
+    if (!email) {
+        showToast('Masukkan emailmu terlebih dahulu.', 'warning');
+        return;
+    }
+    const waNumber = '6283872031397';
+    const message = encodeURIComponent(`Halo Admin, saya lupa password akun dengan email: ${email}`);
+    window.open(`https://wa.me/${waNumber}?text=${message}`, '_blank');
+}
+
+// Particle background
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const particlesArray = [];
+const colors = ['#ffffff', '#00aaff', '#ff00aa'];
+
+class Particle {
+    constructor(){
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 3 + 1;
+        this.speedX = Math.random() - 0.5;
+        this.speedY = Math.random() - 0.5;
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+    }
+    update(){
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if(this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if(this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+    }
+    draw(){
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function init(){
+    for(let i = 0; i < 100; i++) particlesArray.push(new Particle());
+}
+
+function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particlesArray.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+}
+
+init();
+animate();
+
+window.addEventListener('resize', ()=>{
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>

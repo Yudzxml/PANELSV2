@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Reseller</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+<style>
+/* Reset dan box-sizing */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Body */
+body {
+    font-family: 'Arial', sans-serif;
+    background: #0d0d0d;
+    color: #fff;
+    min-height: 100vh;
+    text-align: center; /* Semua teks di body center default */
+}
+
+header {
+    background: rgba(20,20,20,0.95);
+    padding: 1rem 2rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #333;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    gap: 0;
+}
+
+header h1 {
+    color: #00aaff;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: flex-start;
+}
+
+header button {
+    background: linear-gradient(to right, #00aaff, #0056b3);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+header button:hover {
+    background: linear-gradient(to right, #0056b3, #003f7f);
+}
+
+/* Container */
+.container {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+
+/* Profile Card */
+.profile-card {
+    background: rgba(20,20,20,0.95);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 320px;
+    text-align: center;
+    border: 1px solid #333;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.7);
+}
+
+.profile-card img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #00aaff;
+    margin-bottom: 1rem;
+}
+
+.profile-card h2 {
+    margin: 0.5rem 0;
+    color: #00aaff;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.profile-card p {
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+/* Card Section */
+.profile-card .card-section {
+    margin-top: 1.5rem;
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #333;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-card .card-section h3 {
+    margin: 0 0 0.5rem 0;
+    color: #00aaff;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.profile-card .card-section p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+/* Toast container di atas layar */
+#toast-container {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+}
+
+/* Style dasar toast */
+.toast {
+    min-width: 250px;
+    max-width: 350px;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+    text-align: center;
+}
+
+/* Animasi muncul */
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Variasi warna */
+.toast.success {
+    background: linear-gradient(to right, #00aaff, #0056b3);
+}
+
+.toast.error {
+    background: linear-gradient(to right, #ff6b6b, #d80000);
+}
+
+.toast.warning {
+    background: linear-gradient(to right, #ffb74d, #ff9800);
+}
+
+.toast.info {
+    background: linear-gradient(to right, #5c6bc0, #3949ab);
+}
+
+/* Hover bisa dikasih shadow */
+.toast:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+}
+
+/* Icon Styling */
+.profile-card i,
+header i,
+.toast i {
+    color: inherit;
+}
+</style>
+<style>
+/* Panel utama */
+.form-panel {
+    background: rgba(20,20,20,0.95);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 320px;
+    text-align: center;
+    border: 1px solid #333;
+    margin-top: 0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.form-panel:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.7);
+}
+
+/* Judul */
+.form-panel h3 {
+    margin-bottom: 1.5rem;
+    color: #00aaff;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+/* Form group */
+.form-group {
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: #ddd;
+    font-size: 0.95rem;
+}
+.form-group label {
+    font-weight: bold;
+    color: #ccc;
+}
+.form-group input[type="text"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+.form-group input[type="text"]:focus,
+.form-group input[type="password"]:focus {
+    border: 1px solid #00aaff;
+    box-shadow: 0 0 5px #00aaff;
+}
+.form-group input[type="checkbox"],
+.form-group input[type="radio"] {
+    accent-color: #00aaff;
+    transform: scale(1.1);
+    cursor: pointer;
+}
+.form-group input[type="checkbox"] { margin-right: 0.5rem; }
+.form-group input[type="radio"] { margin-right: 0.4rem; }
+
+/* RAM grid */
+.ram-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+.ram-grid label {
+    background: #1a1a1a;
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1 1 45%;
+    text-align: center;
+    font-weight: normal;
+    color: #eee;
+}
+.ram-grid input:checked + span {
+    background: #00aaff;
+    color: #fff;
+    box-shadow: 0 0 5px #00aaff;
+}
+
+/* RAM options hidden animasi */
+#ramOptions {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+#ramOptions.show {
+    max-height: 500px;
+    opacity: 1;
+}
+
+/* Tombol submit */
+.btn-submit {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(to right, #00aaff, #0056b3);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+.btn-submit:hover {
+    background: linear-gradient(to right, #0056b3, #003f7f);
+}
+
+/* Icon tombol */
+.btn-submit .btn-icon {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Spinner animasi */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.btn-spinner {
+    animation: spin 1s linear infinite;
+    font-size: 1rem; /* Sesuaikan ukuran spinner */
+}
+
+/* Optional: fade transition untuk teks tombol saat spinner muncul */
+.btn-text {
+    transition: opacity 0.2s ease;
+}
+</style>
+<style>
+/* Panel Container */
+#panelContainer {
+    background: rgba(20,20,20,0.95);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 320px;
+    text-align: center;
+    border: 1px solid #333;
+    margin-top: 0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+}
+
+#panelContainer:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.7);
+}
+
+.panel-container-title {
+    color: #00aaff;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Toggle Button */
+.toggle-btn {
+    background: none;
+    border: none;
+    color: #00aaff;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+    transition: color 0.2s ease;
+}
+.toggle-btn:hover { color: #0056b3; }
+
+/* Panel List */
+#panelList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.5rem;
+    justify-items: center;
+    transition: all 0.3s ease;
+}
+
+/* Panel Card */
+.panel-card {
+    background: rgba(25,25,25,0.95);
+    border: 1px solid #333;
+    border-radius: 16px;
+    padding: 1rem 1.5rem;
+    width: 100%;
+    max-width: 220px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #00aaff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+.panel-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    background: rgba(25,25,25,1);
+}
+
+/* Detail Modal */
+#panelDetailModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+#panelDetailModal > div {
+    background: rgba(25,25,25,0.95);
+    border: 1px solid #333;
+    border-radius: 16px;
+    width: 400px;
+    max-width: 95%;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    animation: fadeIn 0.25s ease;
+}
+
+#panelDetailModal h3 {
+    font-size: 1.2rem;
+    color: #00aaff;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 0.25rem;
+}
+
+#closeModal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: #ff6b6b;
+    transition: color 0.2s ease;
+}
+#closeModal:hover { color: #ff3b3b; }
+
+#panelDetails div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #333;
+}
+#panelDetails div span {
+    color: #00aaff;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+#panelDetails div button {
+    background: linear-gradient(to right, #00aaff, #0056b3);
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    transition: all 0.2s ease;
+}
+#panelDetails div button:hover {
+    background: linear-gradient(to right, #0056b3, #003f7f);
+}
+
+#deletePanelBtn {
+    background: linear-gradient(to right, #ff6b6b, #d80000);
+    border: none;
+    padding: 0.55rem 1.2rem;
+    border-radius: 12px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    align-self: center;
+    transition: all 0.2s ease;
+}
+#deletePanelBtn:hover {
+    background: linear-gradient(to right, #d80000, #a10000);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+<style>
+  .info-card {
+    background: rgba(20,20,20,0.95);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 320px;
+    text-align: center;
+    border: 1px solid #333;
+    margin-top: 0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.7);
+}
+
+.info-card h2 {
+    margin-bottom: 1rem;
+    color: #00aaff;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.info-card .card-section {
+    margin-top: 1rem;
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* semua konten center */
+    justify-content: center;
+    width: 100%;
+}
+
+.info-card .card-section p {
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    flex-direction: column; /* ikon di atas teks */
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    color: #fff;
+}
+
+.info-card .card-section a {
+    color: #00aaff;
+    text-decoration: none;
+}
+
+.info-card .card-section a:hover {
+    text-decoration: underline;
+}
+
+.info-card .card-section i {
+    color: #ffc107; /* ikon alert kuning */
+    font-size: 1.5rem; /* ikon lebih besar agar menonjol */
+}
+</style>
+</head>
+<body>
+ <div id="toast-container"></div>
+<header>
+    <h1><i class="fa-solid fa-gauge"></i> Dashboard</h1>
+    <button onclick="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </button>
+</header>
+
+<div class="container">
+<div class="info-card">
+  <h2><i class="fa-solid fa-info-circle"></i> INFORMASI</h2>
+  <div class="card-section">
+    <p><i class="fa-solid fa-triangle-exclamation"></i> Dilarang melakukan DDOS pada server</p>
+    <p><i class="fa-solid fa-triangle-exclamation"></i> Tidak boleh menjalankan script bug/DDOS</p>
+    <p><i class="fa-solid fa-triangle-exclamation"></i> Jangan spam request</p>
+    <p><i class="fa-solid fa-triangle-exclamation"></i> Butuh bantuan hubungi <a href="https://wa.me/6283872031397" target="_blank">WA: 6283872031397</a></p>
+  </div>
+</div>
+  <!-- Profile Card -->
+<div class="profile-card">
+  <img id="pp" src="" alt="Profile Picture">
+  <h2 id="name"><i class="fa-solid fa-user"></i> Nama</h2>
+  <p id="role"><i class="fa-solid fa-id-badge"></i> Role: User</p>
+ <p id="money"><i class="fa-solid fa-id-badge"></i> Saldo: </p>
+  <div class="card-section">
+    <h3><i class="fa-solid fa-info-circle"></i> INFORMASI AKUN</h3>
+    <p id="loginAt"><i class="fa-solid fa-clock"></i> Login terakhir: -</p>
+    <p id="expired"><i class="fa-solid fa-calendar-xmark"></i> Kadaluarsa: -</p>
+  </div>
+</div>
+
+<div class="form-panel">
+  <h3><i class="fa-solid fa-server"></i> FORM PANEL</h3>
+  <form id="panelForm">
+    <div class="form-group">
+      <label for="username"><i class="fa-solid fa-user"></i> Username:</label>
+      <input type="text" id="username" name="username" required>
+    </div>
+
+    <div class="form-group" style="position: relative;">
+  <label for="password"><i class="fa-solid fa-lock"></i> Password:</label>
+  <input type="password" id="password" name="password" required>
+  <i id="togglePassword" class="fa-solid fa-eye" 
+     style="position: absolute; right: 10px; top: 70%; transform: translateY(-50%); cursor: pointer;"></i>
+</div>
+
+    <div class="form-group">
+      <label>
+        <input type="checkbox" id="showRam">
+        <i class="fa-solid fa-microchip"></i> PILIH RAM
+      </label>
+    </div>
+
+    <div class="form-group" id="ramOptions">
+      <label><i class="fa-solid fa-memory"></i> Pilih RAM:</label>
+      <div class="ram-grid">
+        <label><input type="radio" name="ram" value="1gb"><span>1GB</span></label>
+        <label><input type="radio" name="ram" value="2gb"><span>2GB</span></label>
+        <label><input type="radio" name="ram" value="4gb"><span>4GB</span></label>
+        <label><input type="radio" name="ram" value="5gb"><span>5GB</span></label>
+        <label><input type="radio" name="ram" value="6gb"><span>6GB</span></label>
+        <label><input type="radio" name="ram" value="7gb"><span>7GB</span></label>
+        <label><input type="radio" name="ram" value="8gb"><span>8GB</span></label>
+        <label><input type="radio" name="ram" value="9gb"><span>9GB</span></label>
+        <label><input type="radio" name="ram" value="10gb"><span>10GB</span></label>
+        <label><input type="radio" name="ram" value="unli"><span>Unli</span></label>
+      </div>
+    </div>
+
+<button type="submit" class="btn-submit">
+  <i class="fa-solid fa-paper-plane btn-icon"></i>
+  <span class="btn-text">Submit</span>
+</button>
+  </form>
+</div>
+
+<!-- Panel Container -->
+<div id="panelContainer">
+    <h2 class="panel-container-title">
+        <i class="fas fa-th-large"></i> LIST PANEL
+        <button id="togglePanelList" title="Sembunyikan/Tampilkan" class="toggle-btn">
+            <i class="fas fa-eye"></i>
+        </button>
+    </h2>
+    <div id="panelList"></div>
+</div>
+
+<!-- Detail Modal -->
+<div id="panelDetailModal" style="display:none">
+  <div>
+    <span id="closeModal">&times;</span>
+    <h3><i class="fas fa-info-circle"></i> Detail Panel</h3>
+    <div id="panelDetails"></div>
+  </div>
+</div>
+
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+let user = null;
+const BASE_URL = '/api/panels';
+async function loadUserData() {
+    const maintenanceData = await getServerMaintenance();
+    if (maintenanceData.maintenance) {
+      window.location.href = 'maintenance.html';
+      return;
+    }
+    const loginInfo = localStorage.getItem('loginInfo');
+    
+    if (!loginInfo) {
+        showToast('Silahkan login terlebih dahulu.', 'warning');
+        setTimeout(() => window.location.href = 'index.html', 2000);
+        return;
+    }
+
+    try {
+        const userLocal = JSON.parse(loginInfo);
+        const now = Date.now();
+
+        // Cek expired
+        if (!userLocal.expired || new Date(userLocal.expired).getTime() < now) {
+            showToast('Sesi Anda telah berakhir. Silahkan login kembali.', 'warning');
+            localStorage.removeItem('loginInfo');
+            setTimeout(() => window.location.href = 'index.html', 2000);
+            return;
+        }
+        const res = await axios.get(BASE_URL, {
+            params: {
+                action: 'user_info',
+                email: userLocal.email
+            }
+        });
+        user = res.data;
+        document.getElementById('name').textContent = (user.email?.split('@')[0]) || 'email@gmail.com';
+        document.getElementById('role').textContent = `${user.role || 'User'}`;
+        document.getElementById('money').innerHTML = `<i class="fa-solid fa-id-badge"></i> Rp ${user.money?.toLocaleString() || '0'}`;
+        document.getElementById('loginAt').textContent = `Time: ${user.loginAt ? new Date(user.loginAt).toLocaleString() : '-'}`;
+        document.getElementById('expired').textContent = `Exp: ${user.expired ? new Date(user.expired).toLocaleDateString() : '-'}`;
+        document.getElementById('pp').src = user.profilePicture || 'https://raw.githubusercontent.com/Yudzxml/UploaderV2/main/tmp/119ca9f4.jpg';
+        
+    } catch (err) {
+        console.error(err);
+        showToast('Gagal memuat data user.', 'error');
+    }
+}
+
+function logout() {
+    localStorage.removeItem('loginInfo');
+    showToast('Logout berhasil.', 'success');
+    setTimeout(() => window.location.href = 'index.html', 1500);
+}
+
+function showToast(message, type = 'success', duration = 4000) {
+    const container = document.getElementById('toast-container');
+    const existingToast = container.querySelector('.toast');
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+async function getServerMaintenance() {
+  try {
+    const res = await axios.get(`${BASE_URL}`, {
+      params: { action: 'panel_health' },
+      timeout: 10000
+    });
+    const data = res.data;
+    return {
+      active: data.active === true,
+      maintenance: data.maintenance === true
+    };
+  } catch {
+    return { active: false, maintenance: true };
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    loadUserData();
+    renderPanels();
+});
+
+const toggleRam = document.getElementById("showRam");
+const ramOptions = document.getElementById("ramOptions");
+const panelForm = document.getElementById("panelForm");
+
+toggleRam.addEventListener("change", () => {
+    if (toggleRam.checked) {
+        ramOptions.classList.add("show");
+    } else {
+        ramOptions.classList.remove("show");
+        document.querySelectorAll('input[name="ram"]').forEach(r => r.checked = false);
+    }
+});
+
+async function createPanel({ email, username, password, ram }) {
+    if (!email || !password || !ram) throw new Error('Field tidak lengkap');
+
+    try {
+        console.log('[createPanel] Membuat panel:', { email, username, ram });
+        const res = await axios.post(`${BASE_URL}`, {
+            action: 'panel_create',
+            email,
+            username,
+            password,
+            ram
+        }, {
+            headers: { "Content-Type": "application/json" }
+        });
+
+        console.log('[createPanel] Response:', res.data);
+        return res.data;
+    } catch (err) {
+        console.error('[createPanel] Error:', err.message || err);
+        throw new Error('Gagal membuat panel: ' + (err.message || 'Unknown error'));
+    }
+}
+
+panelForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const submitBtn = panelForm.querySelector("button[type='submit']");
+    const icon = submitBtn.querySelector("i");
+    const btnText = submitBtn.querySelector("span");
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    let ram = document.querySelector("input[name='ram']:checked")?.value;
+    if (!username) return showToast('Username tidak boleh kosong', 'warning');
+    if (!password) return showToast('Password tidak boleh kosong', 'warning');
+    if (!user || !user.email) return showToast('Data user tidak tersedia', 'error');
+    if (user.money < 3000) {
+        return showToast('Saldo Anda tidak mencukupi, minimal saldo 3.000', 'warning');
+    }
+    if (user.role === 'admin') {
+        if (!ram) return showToast('Silahkan pilih RAM', 'warning');
+    } else {
+        ram = 'unli';
+    }
+    submitBtn.disabled = true;
+    if (btnText) btnText.style.display = 'none';
+    icon.classList.remove('fa-paper-plane');
+    icon.classList.add('fa-spinner', 'fa-spin');
+    try {
+        const result = await createPanel({ email: user.email, username, password, ram });
+        showToast('Panel berhasil dibuat!', 'success');
+        console.log(result);
+        renderPanels();
+        panelForm.reset();
+    } catch (err) {
+        showToast(err.message || 'Terjadi kesalahan', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        if (btnText) btnText.style.display = 'inline';
+        icon.classList.remove('fa-spinner', 'fa-spin');
+        icon.classList.add('fa-paper-plane');
+    }
+});
+
+const passwordInput = document.getElementById("password");
+const togglePassword = document.getElementById("togglePassword");
+
+togglePassword.addEventListener("click", () => {
+    const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+    passwordInput.setAttribute("type", type);
+    togglePassword.classList.toggle("fa-eye-slash");
+});
+
+async function deletePanel({ email, userId, serverId }) {
+  if (!email || !userId || !serverId) throw new Error('Field tidak lengkap');
+
+  try {
+    console.log('[deletePanel] Menghapus panel:', { email, userId, serverId });
+
+    const res = await axios.delete(`${BASE_URL}`, {
+      headers: { "Content-Type": "application/json" },
+      data: {
+        action: 'panel_delete',
+        email,
+        userId,
+        serverId
+      }
+    });
+
+    console.log('[deletePanel] Response:', res.data);
+    return res.data;
+  } catch (err) {
+    console.error('[deletePanel] Error:', err.message || err);
+    throw new Error('Gagal menghapus panel: ' + (err.message || 'Unknown error'));
+  }
+}
+
+async function getCurrentPanels({ email }) {
+    if (!email) throw new Error('Email diperlukan');
+
+    try {
+        console.log('[getCurrentPanels] Mengambil panel untuk email:', email);
+        const res = await axios.get(`${BASE_URL}`, {
+            headers: { "Content-Type": "application/json" },
+            params: {
+                action: 'panel_current',
+                email
+            }
+        });
+        console.log('[getCurrentPanels] Response:', res.data);
+        return res.data;
+    } catch (err) {
+        console.error('[getCurrentPanels] Error:', err.message || err);
+        throw new Error('Gagal mengambil panels: ' + (err.message || 'Unknown error'));
+    }
+}
+
+// Render daftar panel
+async function renderPanels() {
+    if (!user || !user.email) return console.error('Email user tidak tersedia');
+
+    try {
+        const response = await getCurrentPanels({ email: user.email });
+        const panels = response.panels || [];
+        const container = document.getElementById('panelList');
+        container.innerHTML = '';
+
+        if (panels.length === 0) {
+            container.innerHTML = `<p style="color:#aaa; text-align:center;">Belum ada panel tersedia.</p>`;
+            document.getElementById('panelDetailModal').style.display = 'none';
+            return;
+        }
+
+        panels.forEach(panel => {
+            const card = document.createElement('div');
+            card.classList.add('panel-card');
+            const displayName = panel.username || panel.serverId || 'Panel';
+            card.innerHTML = `<i class="fas fa-server"></i> ${displayName}`;
+
+            card.addEventListener('click', () => showPanelDetail(panel));
+            container.appendChild(card);
+        });
+
+        document.getElementById('panelDetailModal').style.display = 'none';
+    } catch (err) {
+        console.error('[renderPanels] Error:', err);
+        showToast('Gagal memuat daftar panel', 'error');
+        document.getElementById('panelDetailModal').style.display = 'none';
+    }
+}
+
+// Tampilkan detail panel
+function showPanelDetail(panel) {
+    if (!panel) return;
+
+    const modal = document.getElementById('panelDetailModal');
+    const detailsContainer = document.getElementById('panelDetails');
+    detailsContainer.innerHTML = '';
+
+    // Header
+    const header = document.createElement('h4');
+    header.innerHTML = `<i class="fas fa-server"></i> ${panel.username || panel.serverId || 'Panel Detail'}`;
+    header.style.color = '#00aaff';
+    header.style.marginBottom = '0.5rem';
+    detailsContainer.appendChild(header);
+
+    // List property
+    for (const key in panel) {
+        if (!panel.hasOwnProperty(key)) continue;
+        let value = panel[key];
+        if (key === 'createdAt' && value?._seconds) {
+            value = new Date(value._seconds * 1000).toLocaleString();
+        }
+
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+        div.style.padding = '0.4rem 0';
+        div.style.borderBottom = '1px solid #333';
+        div.innerHTML = `
+            <span><i class="fas fa-key"></i> ${key}: ${value}</span>
+            <button data-value="${value}" class="copy-btn"><i class="fas fa-copy"></i></button>
+        `;
+        div.querySelector('button').addEventListener('click', e => {
+            const copyValue = e.target.dataset.value || e.target.closest('button').dataset.value;
+            navigator.clipboard.writeText(copyValue);
+            showToast('Tersalin: ' + copyValue, 'info');
+        });
+        detailsContainer.appendChild(div);
+    }
+
+    // Tombol hapus dengan spinner
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn-delete';
+    deleteBtn.innerHTML = `<i class="fas fa-trash btn-icon"></i> <span class="btn-text">Hapus Panel</span>`;
+    deleteBtn.style.cssText = `
+        margin-top: 1rem;
+        width: 100%;
+        padding: 0.6rem;
+        border-radius: 8px;
+        border: none;
+        background: linear-gradient(to right, #ff6b6b, #d80000);
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+    `;
+
+    deleteBtn.onclick = async () => {
+        const icon = deleteBtn.querySelector('.btn-icon');
+        const text = deleteBtn.querySelector('.btn-text');
+
+        const email = user?.email || '';
+        const userId = panel.userId || '';
+        const serverId = panel.serverId || '';
+
+        if (!email || !userId || !serverId) return showToast('Data panel tidak lengkap', 'error');
+
+        // Aktifkan spinner
+        deleteBtn.disabled = true;
+        if (text) text.style.display = 'none';
+        icon.classList.remove('fa-trash');
+        icon.classList.add('fa-spinner', 'fa-spin');
+
+        try {
+            await deletePanel({ email, userId, serverId });
+            modal.style.display = 'none';
+            renderPanels();
+            showToast('Panel berhasil dihapus', 'success');
+        } catch (err) {
+            console.error(err);
+            showToast('Gagal hapus panel', 'error');
+        } finally {
+            // Kembalikan tombol ke kondisi awal
+            deleteBtn.disabled = false;
+            if (text) text.style.display = 'inline';
+            icon.classList.remove('fa-spinner', 'fa-spin');
+            icon.classList.add('fa-trash');
+        }
+    };
+
+    detailsContainer.appendChild(deleteBtn);
+    modal.style.display = 'flex';
+}
+
+// Close modal
+document.getElementById('closeModal').onclick = () => {
+    document.getElementById('panelDetailModal').style.display = 'none';
+};
+
+// Klik di luar modal
+window.onclick = (e) => {
+    const modal = document.getElementById('panelDetailModal');
+    if (e.target === modal) modal.style.display = 'none';
+};
+
+// Toggle show/hide panel list
+document.getElementById('togglePanelList').onclick = () => {
+    const list = document.getElementById('panelList');
+    const icon = document.querySelector('#togglePanelList i');
+    if (list.style.display === 'none') {
+        list.style.display = 'grid';
+        icon.className = 'fas fa-eye';
+    } else {
+        list.style.display = 'none';
+        icon.className = 'fas fa-eye-slash';
+    }
+};
+</script>
+</body>
+</html>

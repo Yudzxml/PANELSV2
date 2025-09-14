@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login & Manajemen User</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+<style>
+  /* ===== GLOBAL RESET & BODY ===== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+    font-family: 'Arial', sans-serif; 
+    background: #0d0d0d; 
+    color: #fff; 
+    min-height: 100vh; 
+    position: relative; 
+    overflow-x: hidden; 
+    padding-left: 1rem;  /* padding kiri agar kontainer tidak menempel */
+    padding-right: 1rem; /* padding kanan agar kontainer tidak menempel */
+}
+
+/* ===== CANVAS ===== */
+canvas { 
+    position: absolute; 
+    top: 0; left: 0; 
+    width: 100%; 
+    height: 100%; 
+    z-index: 0; 
+}
+
+/* ===== TOAST ===== */
+#toast-container { 
+    position: fixed; 
+    top: 1rem; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    z-index: 9999; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 0.75rem; 
+    pointer-events: none; 
+}
+.toast { 
+    min-width: 250px; 
+    max-width: 350px; 
+    padding: 0.75rem 1rem; 
+    border-radius: 8px; 
+    color: #fff; 
+    font-weight: 500; 
+    box-shadow: 0 6px 15px rgba(0,0,0,0.5); 
+    opacity: 0; 
+    transform: translateY(-20px); 
+    transition: all 0.3s; 
+    pointer-events: auto; 
+    text-align: center; 
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: linear-gradient(to right, #00aaff, #0056b3); }
+.toast.error { background: linear-gradient(to right, #ff6b6b, #d80000); }
+.toast.warning { background: linear-gradient(to right, #ffb74d, #ff9800); }
+.toast.info { background: linear-gradient(to right, #5c6bc0, #3949ab); }
+.toast:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
+
+/* ===== LOGIN BOX ===== */
+.login-box { 
+    position: relative; 
+    z-index: 1; 
+    background: rgba(20,20,20,0.95); 
+    padding: 2rem; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6); 
+    width: 100%;          /* responsive width */
+    max-width: 320px;     /* batas maksimal */
+    text-align: center; 
+    border: 1px solid #333; 
+    margin: 3rem auto; 
+    transition: transform 0.3s, box-shadow 0.3s; 
+}
+.login-box:hover { 
+    transform: translateY(-5px); 
+    box-shadow: 0 15px 30px rgba(0,0,0,0.7); 
+}
+.login-box h2 { 
+    margin-bottom: 1.5rem; 
+    color: #00aaff; 
+    font-weight: 600; 
+}
+
+.input-group { position: relative; margin-bottom: 1rem; }
+.input-group input { 
+    width: 100%; 
+    padding: 0.75rem 0.75rem 0.75rem 2.5rem; 
+    border-radius: 8px; 
+    border: 1px solid #555; 
+    background: #1a1a1a; 
+    color: #fff; 
+    outline: none; 
+    transition: border-color 0.3s, background 0.3s; 
+}
+.input-group input:focus { border-color: #00aaff; background: #222; }
+.input-group i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #00aaff; }
+.input-group i.fa-eye, .input-group i.fa-eye-slash { right: 0.75rem; left: auto; cursor: pointer; }
+
+/* ===== BUTTONS ===== */
+button { 
+    width: 100%; 
+    padding: 0.75rem; 
+    border: none; 
+    border-radius: 8px; 
+    background: linear-gradient(to right,#00aaff,#0056b3); 
+    color: #fff; 
+    font-size: 1rem; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: all 0.3s; 
+}
+button:hover { 
+    background: linear-gradient(to right,#0056b3,#003f7f); 
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
+}
+p.lupa-password { 
+    margin-top: 10px; 
+    text-align: right; 
+    cursor: pointer; 
+    color: #00aaff; 
+    font-size: 0.9rem; 
+    transition: color 0.3s; 
+}
+p.lupa-password:hover { color: #0056b3; }
+
+/* ===== MANAGEMEN USER ===== */
+h1 { color: #00aaff; text-align: center; margin-bottom: 1.5rem; }
+.container { 
+    background: rgba(20,20,20,0.95); 
+    border-radius: 12px; 
+    padding: 2rem; 
+    margin: 1rem auto; 
+    width: 100%;         /* responsive width */
+    max-width: 450px;    /* batas maksimal */
+    border: 1px solid #333; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6); 
+    display: flex; 
+    flex-direction: column; 
+    gap: 1.5rem; 
+    transition: transform 0.3s, box-shadow 0.3s; 
+}
+.container:hover { 
+    transform: translateY(-5px); 
+    box-shadow: 0 15px 30px rgba(0,0,0,0.7); 
+}
+.container h2 { color: #00aaff; font-size: 1.5rem; margin-bottom: 1rem; }
+
+.form-group { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+.form-group label { font-weight: 500; font-size: 0.95rem; color: #fff; }
+.form-group input, .form-group select { 
+    width: 100%; 
+    padding: 0.5rem 0.75rem; 
+    border-radius: 8px; 
+    border: 1px solid #333; 
+    background: #1a1a1a; 
+    color: #fff; 
+    font-size: 0.95rem; 
+    transition: all 0.2s; 
+}
+.form-group input:focus, .form-group select:focus { 
+    outline: none; 
+    border-color: #00aaff; 
+    box-shadow: 0 0 8px rgba(0,170,255,0.5); 
+}
+
+/* BUTTON TYPES */
+#addBtn { background: linear-gradient(to right,#00aaff,#0056b3); }
+#addBtn:hover { background: linear-gradient(to right,#0056b3,#003f7f); }
+.delete { background: linear-gradient(to right,#ff6b6b,#d80000); }
+.delete:hover { background: linear-gradient(to right,#d80000,#a00000); }
+.update { background: linear-gradient(to right,#5c6bc0,#3949ab); }
+.update:hover { background: linear-gradient(to right,#3949ab,#1a237e); }
+
+/* USER INFO BOX */
+.user-info { 
+    background: #1a1a1a; 
+    border-radius: 8px; 
+    border: 1px solid #333; 
+    padding: 1rem; 
+    text-align: left; 
+    font-size: 0.9rem; 
+    white-space: pre-wrap; 
+    word-wrap: break-word; 
+}
+
+/* HIDE USER MANAGEMENT BY DEFAULT */
+#userManagement { display: none; }
+
+/* ===== MEDIA QUERIES ===== */
+@media screen and (max-width: 500px) { 
+    .container { padding: 1.5rem; } 
+    .login-box { width: 100%; padding: 1.5rem; } 
+}
+</style>
+</head>
+<body>
+<canvas id="particle-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
+
+<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+<!-- LOGIN -->
+<div class="login-box" id="loginBox" style="position:relative;z-index:1;">
+    <h2>FORM LOGIN</h2>
+    <div class="input-group">
+        <i class="fa fa-envelope"></i>
+        <input type="email" id="loginEmail" placeholder="Email" required>
+    </div>
+    <div class="input-group">
+        <i class="fa fa-lock"></i>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+        <i id="togglePwd" class="fa fa-eye" style="cursor:pointer;"></i>
+    </div>
+    <button onclick="login()">Login</button>
+    <p class="lupa-password" onclick="forgotPassword()">Lupa Password?</p>
+</div>
+
+<!-- MANAGEMEN USER -->
+<div id="userManagement" style="display:none;position:relative;z-index:1;">
+    <h1>Manajemen User</h1>
+
+    <div class="container" id="addContainer">
+      <h2>Tambah / Update User</h2>
+      <div class="form-group"><label>Email:</label><input type="email" id="email" placeholder="Masukkan email"></div>
+      <div class="form-group"><label>Password:</label><input type="password" id="passwordUser" placeholder="Masukkan password"></div>
+      <div class="form-group"><label>Active Days:</label><input type="number" id="activeDays" placeholder="Jumlah hari aktif"></div>
+      <div class="form-group"><label>Role:</label>
+        <select id="role">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="form-group"><button id="addBtn">Tambah / Update</button></div>
+    </div>
+
+    <div class="container" id="deleteContainer">
+      <h2>Hapus User</h2>
+      <div class="form-group"><label>Email:</label><input type="email" id="emailDelete" placeholder="Masukkan email"></div>
+      <div class="form-group"><button class="delete" id="deleteBtn">Hapus</button></div>
+    </div>
+
+    <div class="container" id="updateRoleContainer">
+      <h2>Update Role User</h2>
+      <div class="form-group"><label>Email:</label><input type="email" id="emailRole" placeholder="Masukkan email"></div>
+      <div class="form-group"><label>Role:</label>
+        <select id="roleUpdate">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="form-group"><button class="update" id="updateRoleBtn">Update Role</button></div>
+    </div>
+    
+    <div class="container" id="deleteAllContainer">
+      <h2>Hapus Semua Panel</h2>
+      <div class="form-group"><label>Email:</label><input type="email" id="emailAllDelete" placeholder="Masukkan email Admin"></div>
+      <div class="form-group"><button class="delete" id="deleteAllBtn">Hapus</button></div>
+    </div>
+
+    <div class="container" id="infoContainer">
+      <h2>Info User</h2>
+      <div class="form-group"><label>Email:</label><input type="email" id="emailInfo" placeholder="Masukkan email"></div>
+      <div class="form-group"><button id="infoBtn">Dapatkan Info</button></div>
+      <div class="user-info" id="userInfo">Info user akan tampil di sini...</div>
+    </div>
+    
+    <div class="container" id="infoAllUsersContainer">
+      <h2>List All User</h2>
+      <div class="form-group"><label>Email:</label><input type="email" id="emailAllUser" placeholder="Masukkan email Admin"></div>
+      <div class="form-group"><button id="infoAllBtn">Get All Users</button></div>
+      <div class="user-info" id="userAllInfo">List all User akan tampil di sini...</div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+// UTILITY
+function decodeBase64(base64) { try { return atob(base64).trim(); } catch { return ''; } }
+
+function showToast(msg, type='success', duration=4000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.style.cssText = "margin-bottom:10px;padding:10px 20px;border-radius:5px;color:#fff;opacity:0;transition:0.3s;";
+    toast.textContent = msg;
+    if (type==='success') toast.style.backgroundColor='#4caf50';
+    else if(type==='error') toast.style.backgroundColor='#f44336';
+    else toast.style.backgroundColor='#ff9800';
+    container.appendChild(toast);
+    setTimeout(() => toast.style.opacity = '1', 10);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, duration);
+}
+
+// LOGIN CREDENTIALS
+const USER_CREDENTIALS = {
+    email: decodeBase64('eXVkYWFyeWFhcmRoYW5hMTEyMkBnbWFpbC5jb20='),
+    password: decodeBase64('WXVkenhtbDExMjI=')
+};
+
+// TOGGLE PASSWORD VISIBILITY
+const toggleIcon = document.getElementById('togglePwd');
+if(toggleIcon) toggleIcon.addEventListener('click', () => {
+    const pwd = document.getElementById('loginPassword');
+    if(!pwd) return;
+    pwd.type = (pwd.type === 'password') ? 'text' : 'password';
+    toggleIcon.classList.toggle('fa-eye-slash');
+    toggleIcon.classList.toggle('fa-eye');
+});
+
+// PARTICLE BACKGROUND
+const canvas = document.getElementById('particle-canvas');
+let particleAnimationId;
+let particlesArray = [];
+
+if(canvas){
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth; 
+    canvas.height = window.innerHeight;
+    const colors = ['#ffffff','#00aaff','#ff00aa'];
+
+    class Particle {
+        constructor(){
+            this.x = Math.random()*canvas.width;
+            this.y = Math.random()*canvas.height;
+            this.size = Math.random()*3+1;
+            this.speedX = Math.random()-0.5;
+            this.speedY = Math.random()-0.5;
+            this.color = colors[Math.floor(Math.random()*colors.length)];
+        }
+        update(){
+            this.x+=this.speedX; this.y+=this.speedY;
+            if(this.x<0||this.x>canvas.width) this.speedX*=-1;
+            if(this.y<0||this.y>canvas.height) this.speedY*=-1;
+        }
+        draw(){ ctx.fillStyle=this.color; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); }
+    }
+
+    function initParticles(count=100){ particlesArray=[]; for(let i=0;i<count;i++) particlesArray.push(new Particle()); }
+    function animateParticles(){ ctx.clearRect(0,0,canvas.width,canvas.height); particlesArray.forEach(p=>{p.update();p.draw();}); particleAnimationId=requestAnimationFrame(animateParticles); }
+
+    initParticles(); animateParticles();
+    window.addEventListener('resize',()=>{ canvas.width=window.innerWidth; canvas.height=window.innerHeight; initParticles(); });
+}
+
+// HANDLE LOGIN
+function login() {
+    const email = document.getElementById('loginEmail')?.value.trim();
+    const password = document.getElementById('loginPassword')?.value.trim();
+    if(!email||!password) return showToast('Email dan password wajib diisi.', 'warning');
+    if(email!==USER_CREDENTIALS.email||password!==USER_CREDENTIALS.password) return showToast('Email atau password salah.', 'warning');
+
+    // simpan sesi login di localStorage
+    localStorage.setItem('isLoggedIn', 'true');
+
+    if(particleAnimationId) cancelAnimationFrame(particleAnimationId);
+    document.getElementById('loginBox').style.display='none';
+    document.getElementById('userManagement').style.display='block';
+    showToast('Login berhasil!', 'success');
+}
+
+// CEK SESSION SAAT HALAMAN DIMUAT
+function checkLoginSession() {
+    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    if(loggedIn){
+        if(particleAnimationId) cancelAnimationFrame(particleAnimationId);
+        document.getElementById('loginBox').style.display='none';
+        document.getElementById('userManagement').style.display='block';
+    }
+}
+
+// LOGOUT FUNCTION
+function logout() {
+    localStorage.removeItem('isLoggedIn');
+    document.getElementById('loginBox').style.display='block';
+    document.getElementById('userManagement').style.display='none';
+    showToast('Logout berhasil.', 'success');
+    // restart particles
+    if(canvas){
+        initParticles();
+        animateParticles();
+    }
+}
+
+// USER MANAGEMENT
+const BASE_URL = '/api/panels';
+
+async function addUser() {
+    try{
+        const email = document.getElementById('email')?.value.trim();
+        const password = document.getElementById('passwordUser')?.value.trim();
+        const activeDays = parseInt(document.getElementById('activeDays')?.value) || 0;
+        const role = document.getElementById('role')?.value.trim();
+        if(!email||!password||activeDays<=0||!role) return showToast('Semua field harus diisi dengan benar.', 'warning');
+        const res = await axios.post(`${BASE_URL}`, {
+          action: 'user_add',
+          email,
+          password,
+          activeDays,
+          role
+        });
+        showToast('User berhasil ditambahkan/diupdate.', 'success'); console.log(res.data);
+    } catch(err){ showToast(err.response?.data?.message||err.message,'error'); }
+}
+
+async function deleteUser() {
+    try{
+        const email = document.getElementById('emailDelete')?.value.trim();
+        if(!email) return showToast('Masukkan email user untuk dihapus.', 'warning');
+        const res = await axios.delete(`${BASE_URL}`, {
+          data: {
+          action: 'user_delete',
+          email
+           }
+        });
+        showToast('User berhasil dihapus.', 'success'); console.log(res.data);
+    } catch(err){ showToast(err.response?.data?.message||err.message,'error'); }
+}
+
+async function deleteAllPanel() {
+    try{
+        const email = document.getElementById('emailAllDelete')?.value.trim();
+        if(!email) return showToast('Masukkan email Admin untuk menghapus data panel.', 'warning');
+        const res = await axios.delete(`${BASE_URL}`, {
+          data: {
+          action: 'user_delete_all',
+          email
+           }
+        });
+        showToast('semua data panel berhasil dihapus.', 'success'); console.log(res.data);
+    } catch(err){ showToast(err.response?.data?.message||err.message,'error'); }
+}
+
+async function updateRole() {
+    try{
+        const email = document.getElementById('emailRole')?.value.trim();
+        const role = document.getElementById('roleUpdate')?.value.trim();
+        if(!email||!role) return showToast('Email dan role harus diisi.', 'warning');
+        const res = await axios.post(`${BASE_URL}`, {
+          action: 'user_role',
+          email,
+          role
+        });
+        showToast('Role berhasil diupdate.', 'success'); console.log(res.data);
+    } catch(err){ showToast(err.response?.data?.message||err.message,'error'); }
+}
+
+async function fetchUserInfo() {
+    try{
+        const email = document.getElementById('emailInfo')?.value.trim();
+        if(!email) return showToast('Masukkan email untuk melihat info.', 'warning');
+        const res = await axios.get(`${BASE_URL}`, {
+          params: {
+          action: 'user_info',
+          email
+          }
+        });
+        const infoEl = document.getElementById('userInfo');
+        if(infoEl) infoEl.innerText = JSON.stringify(res.data,null,2);
+    } catch(err){ showToast(err.response?.data?.message||err.message,'error'); }
+}
+
+async function fetchAllUser() {
+    try{
+        const email = document.getElementById('emailAllUser')?.value.trim();
+        if(!email) return showToast('Masukkan email admin untuk melihat all user.', 'warning');
+        const res = await axios.get(`${BASE_URL}`, {
+          params: {
+          action: 'user_info_all',
+          email
+          }
+        });
+        const infoEl = document.getElementById('userAllInfo');
+        if(infoEl) infoEl.innerText = JSON.stringify(res.data,null,2);
+    } catch(err){ showToast(err.response?.data?.message||err.message,'error'); }
+}
+// EVENT LISTENERS
+document.getElementById('addBtn')?.addEventListener('click', addUser);
+document.getElementById('deleteBtn')?.addEventListener('click', deleteUser);
+document.getElementById('deleteAllBtn')?.addEventListener('click', deleteAllPanel);
+document.getElementById('updateRoleBtn')?.addEventListener('click', updateRole);
+document.getElementById('infoBtn')?.addEventListener('click', fetchUserInfo);
+document.getElementById('infoAllBtn')?.addEventListener('click', fetchAllUser);
+// CEK SESSION SAAT LOAD
+window.addEventListener('DOMContentLoaded', checkLoginSession);
+</script>
+</body>
+</html>
