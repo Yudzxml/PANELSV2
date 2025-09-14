@@ -493,25 +493,31 @@ async function addUser() {
     try {
         const email = document.getElementById('email')?.value.trim();
         const password = document.getElementById('passwordUser')?.value.trim();
-        const activeDays = parseInt(document.getElementById('activeDays')?.value) || 0;
+        const activeDaysRaw = document.getElementById('activeDays')?.value.trim();
         const role = document.getElementById('role')?.value.trim();
-        const money = parseFloat(document.getElementById('money')?.value) || 0;
+        const moneyRaw = document.getElementById('money')?.value.trim();
 
-        // Validasi input
-        if (!email || !password || activeDays <= 0 || !role) 
-            return showToast('Semua field harus diisi dengan benar.', 'warning');
-        if (money < 0) 
+        if (!email) return showToast('Email wajib diisi.', 'warning');
+
+        // parsing optional fields
+        const activeDays = activeDaysRaw ? parseInt(activeDaysRaw) : undefined;
+        const money = moneyRaw ? parseFloat(moneyRaw) : undefined;
+
+        // validasi
+        if (activeDays !== undefined && activeDays <= 0) 
+            return showToast('activeDays harus angka positif.', 'warning');
+        if (money !== undefined && money < 0) 
             return showToast('Nominal uang tidak boleh negatif.', 'warning');
 
-        // Kirim data ke API
-        const res = await axios.post(`${BASE_URL}`, {
-            action: 'user_add',
-            email,
-            password,
-            activeDays,
-            role,
-            money
-        });
+        // siapkan payload hanya untuk field yg ada
+        const payload = { action: 'user_add', email };
+        if (password) payload.password = password;
+        if (activeDays !== undefined) payload.activeDays = activeDays;
+        if (role) payload.role = role;
+        if (money !== undefined) payload.money = money;
+
+        // kirim ke API
+        const res = await axios.post(`${BASE_URL}`, payload);
 
         showToast('User berhasil ditambahkan/diupdate.', 'success');
         console.log(res.data);
