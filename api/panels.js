@@ -104,30 +104,62 @@ async function findPanelOwner(email, userId, serverId) {
 }
 
 // ===== User API =====
-async function addOrUpdateUser({ email, password, activeDays, role = 'user', money = 0 }) {
+async function addOrUpdateUser({ email, password, activeDays, role, money }) {
   try {
+    if (!email) throw new Error('Email wajib diisi');
+
     const userRef = db.collection('users').doc(email);
     const userDoc = await userRef.get();
     const now = Date.now();
-    const msDays = activeDays * 86400000;
 
+    // USER BARU → semua field wajib
     if (!userDoc.exists) {
-      const expireAt = admin.firestore.Timestamp.fromDate(new Date(now + msDays));
-      await userRef.set({ 
-        email, 
-        password, 
-        role, 
-        money, 
-        expireAt, 
-        createdAt: admin.firestore.FieldValue.serverTimestamp() 
+      if (!password) throw new Error('Password wajib diisi untuk user baru');
+      if (!activeDays || activeDays <= 0) throw new Error('activeDays wajib > 0 untuk user baru');
+
+      const expireAt = admin.firestore.Timestamp.fromDate(new Date(now + activeDays * 86400000));
+
+      await userRef.set({
+        email,
+        password,
+        role: role || 'user',
+        money: money || 0,
+        expireAt,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
-      return { email, expireAt: expireAt.toDate(), role, money, action: 'added' };
+
+      return { email, expireAt: expireAt.toDate(), role: role || 'user', money: money || 0, action: 'added' };
+    }
+
+    // USER EXISTING → update fleksibel
+    const data = userDoc.data();
+    const currentExpire = data.expireAt?.toDate().getTime() || now;
+    const msDays = activeDays && activeDays > 0 ? activeDays * 86400000 : 0;
+    const newExpire = msDays > 0 ? new Date(Math.max(currentExpire, now) + msDays) : data.expireAt.toDate();
+
+    const updateData = {};
+    if (password) updateData.password = password;
+    if (role) updateData.role = role;
+    if (money !== undefined) updateData.money = money;
+    if (msDays > 0) updateData.expireAt = admin.firestore.Timestamp.fromDate(newExpire);
+
+    if (Object.keys(updateData).length > 0) {
+      await userRef.update(updateData);
+      return {
+        email,
+        expireAt: newExpire,
+        role: updateData.role || data.role,
+        money: updateData.money ?? data.money,
+        action: 'updated'
+      };
     } else {
-      const data = userDoc.data();
-      const currentExpire = data.expireAt.toDate().getTime();
-      const newExpire = new Date(Math.max(currentExpire, now) + msDays);
-      await userRef.update({ password, role, money, expireAt: admin.firestore.Timestamp.fromDate(newExpire) });
-      return { email, expireAt: newExpire, role, money, action: 'updated' };
+      return {
+        email,
+        expireAt: data.expireAt.toDate(),
+        role: data.role,
+        money: data.money,
+        action: 'unchanged'
+      };
     }
   } catch (err) {
     throw new Error('Gagal menambahkan / memperbarui user: ' + (err.message || 'Unknown error'));
@@ -261,28 +293,32 @@ module.exports = async function handler(req, res) {
     const actions = {
       // ------------------- USER ACTIONS -------------------
       user_add: async () => {
-  if (method !== 'POST') return res.status(405).json({ error: 'Method POST diperlukan' });
+  if (method !== 'POST') 
+    return res.status(405).json({ error: 'Method POST diperlukan' });
 
   const { email, password, activeDays, role, money } = req.body;
 
-  if (!email || !password || activeDays == null || money == null) {
-    return res.status(400).json({ error: 'Field email, password, activeDays, dan money wajib diisi' });
+  if (!email) {
+    return res.status(400).json({ error: 'Field email wajib diisi' });
   }
 
-  if (typeof activeDays !== 'number' || activeDays <= 0) {
+  // validasi jika dikirim
+  if (activeDays != null && (typeof activeDays !== 'number' || activeDays <= 0)) {
     return res.status(400).json({ error: 'activeDays harus berupa angka positif' });
   }
 
-  if (typeof money !== 'number' || money <= 0) {
-    return res.status(400).json({ error: 'money harus berupa angka positif' });
+  if (money != null && (typeof money !== 'number' || money < 0)) {
+    return res.status(400).json({ error: 'money harus berupa angka positif atau 0' });
   }
+
+  // panggil addOrUpdateUser
   const user = await addOrUpdateUser({ email, password, activeDays, role, money });
 
   return res.json({
     message: `User berhasil ${user.action}`,
     user
   });
-},
+      },
       user_delete: async () => {
         if (method !== 'DELETE') return res.status(405).json({ error: 'Method DELETE diperlukan' });
         const { email } = req.body;
@@ -433,7 +469,7 @@ module.exports = async function handler(req, res) {
   }
 },
       panel_delete_all: async () => {
-  try {
+      try {
     if (method !== 'DELETE') {
       return res.status(405).json({ error: 'Method DELETE diperlukan' });
     }
