@@ -721,46 +721,76 @@ header i,
 let user = null;
 const BASE_URL = '/api/panels';
 async function loadUserData() {
-    const maintenanceData = await getServerMaintenance();
-    if (maintenanceData.maintenance) {
-      window.location.href = 'maintenance.html';
-      return;
-    }
-    const loginInfo = localStorage.getItem('loginInfo');
-    
-    if (!loginInfo) {
-        showToast('Silahkan login terlebih dahulu.', 'warning');
-        setTimeout(() => window.location.href = 'index.html', 2000);
-        return;
-    }
+    console.log("[loadUserData] Memulai proses load user data...");
 
     try {
+        console.log("[loadUserData] Mengecek status maintenance server...");
+        const maintenanceData = await getServerMaintenance();
+        console.log("[loadUserData] Data maintenance:", maintenanceData);
+
+        if (maintenanceData.maintenance) {
+            console.warn("[loadUserData] Server dalam mode maintenance. Redirect ke halaman maintenance.");
+            window.location.href = 'maintenance.html';
+            return;
+        }
+
+        console.log("[loadUserData] Mengecek loginInfo di localStorage...");
+        const loginInfo = localStorage.getItem('loginInfo');
+        console.log("[loadUserData] loginInfo:", loginInfo);
+
+        if (!loginInfo) {
+            console.warn("[loadUserData] Tidak ada loginInfo ditemukan. User belum login.");
+            showToast('Silahkan login terlebih dahulu.', 'warning');
+            setTimeout(() => {
+                console.log("[loadUserData] Redirect ke halaman index (login)...");
+                window.location.href = 'index.html';
+            }, 2000);
+            return;
+        }
+
+        console.log("[loadUserData] Parsing loginInfo JSON...");
         const userLocal = JSON.parse(loginInfo);
+        console.log("[loadUserData] Data userLocal:", userLocal);
+
         const now = Date.now();
+        console.log("[loadUserData] Waktu sekarang (timestamp):", now);
 
         // Cek expired
         if (!userLocal.expired || new Date(userLocal.expired).getTime() < now) {
+            console.warn("[loadUserData] Sesi user expired atau tidak ada expired time.");
             showToast('Sesi Anda telah berakhir. Silahkan login kembali.', 'warning');
             localStorage.removeItem('loginInfo');
-            setTimeout(() => window.location.href = 'index.html', 2000);
+            setTimeout(() => {
+                console.log("[loadUserData] Redirect ke halaman index (login) karena expired.");
+                window.location.href = 'index.html';
+            }, 2000);
             return;
         }
+
+        console.log("[loadUserData] Mengambil data user dari server...");
         const res = await axios.get(BASE_URL, {
             params: {
                 action: 'user_info',
                 email: userLocal.email
             }
         });
-        user = res.data;
+        console.log("[loadUserData] Response server:", res);
+
+        const user = res.data;
+        console.log("[loadUserData] Data user dari server:", user);
+
+        console.log("[loadUserData] Update DOM dengan data user...");
         document.getElementById('name').textContent = (user.email?.split('@')[0]) || 'email@gmail.com';
         document.getElementById('role').textContent = `${user.role || 'User'}`;
         document.getElementById('money').innerHTML = `<i class="fa-solid fa-id-badge"></i> Rp ${user.money?.toLocaleString() || '0'}`;
         document.getElementById('loginAt').textContent = `Time: ${user.loginAt ? new Date(user.loginAt).toLocaleString() : '-'}`;
         document.getElementById('expired').textContent = `Exp: ${user.expired ? new Date(user.expired).toLocaleDateString() : '-'}`;
         document.getElementById('pp').src = user.profilePicture || 'https://raw.githubusercontent.com/Yudzxml/UploaderV2/main/tmp/119ca9f4.jpg';
-        
+
+        console.log("[loadUserData] Data user berhasil dimuat dan ditampilkan di UI.");
+
     } catch (err) {
-        console.error(err);
+        console.error("[loadUserData] Terjadi error saat load user data:", err);
         showToast('Gagal memuat data user.', 'error');
     }
 }
