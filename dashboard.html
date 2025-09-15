@@ -780,11 +780,14 @@ async function loadUserData() {
         console.log("[loadUserData] Data user dari server:", user);
 
         console.log("[loadUserData] Update DOM dengan data user...");
+
         document.getElementById('name').textContent = (user.email?.split('@')[0]) || 'email@gmail.com';
         document.getElementById('role').textContent = `${user.role || 'User'}`;
         document.getElementById('money').innerHTML = `<i class="fa-solid fa-id-badge"></i> Rp ${user.money?.toLocaleString() || '0'}`;
-        document.getElementById('loginAt').textContent = `Time: ${user.loginAt ? new Date(user.loginAt).toLocaleString() : '-'}`;
-        document.getElementById('expired').textContent = `Exp: ${user.expired ? new Date(user.expired).toLocaleDateString() : '-'}`;
+        
+        document.getElementById('loginAt').textContent = `Time: ${userLocal.loginAt ? new Date(userLocal.loginAt).toLocaleString() : '-'}`;
+        
+        document.getElementById('expired').textContent = `Exp: ${user.expireAt ? new Date(user.expireAt).toLocaleDateString() : '-'}`;
         document.getElementById('pp').src = user.profilePicture || 'https://raw.githubusercontent.com/Yudzxml/UploaderV2/main/tmp/119ca9f4.jpg';
 
         console.log("[loadUserData] Data user berhasil dimuat dan ditampilkan di UI.");
@@ -834,9 +837,14 @@ async function getServerMaintenance() {
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    loadUserData();
-    renderPanels();
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        await loadUserData(); 
+        renderPanels();
+    } catch (err) {
+        console.error("[App] Gagal load user data:", err);
+        showToast('Gagal memuat aplikasi.', 'error');
+    }
 });
 
 const toggleRam = document.getElementById("showRam");
