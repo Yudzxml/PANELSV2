@@ -720,6 +720,7 @@ header i,
 <script>
 let user = null;
 const BASE_URL = '/api/panels';
+
 async function loadUserData() {
     console.log("[loadUserData] Memulai proses load user data...");
 
@@ -755,7 +756,7 @@ async function loadUserData() {
         const now = Date.now();
         console.log("[loadUserData] Waktu sekarang (timestamp):", now);
 
-        // Cek expired
+        // Cek expired (ambil dari localStorage)
         if (!userLocal.expired || new Date(userLocal.expired).getTime() < now) {
             console.warn("[loadUserData] Sesi user expired atau tidak ada expired time.");
             showToast('Sesi Anda telah berakhir. Silahkan login kembali.', 'warning');
@@ -776,7 +777,8 @@ async function loadUserData() {
         });
         console.log("[loadUserData] Response server:", res);
 
-        const user = res.data;
+        // assign ke global user (bukan bikin const baru)
+        user = res.data.user;
         console.log("[loadUserData] Data user dari server:", user);
 
         console.log("[loadUserData] Update DOM dengan data user...");
@@ -784,9 +786,10 @@ async function loadUserData() {
         document.getElementById('name').textContent = (user.email?.split('@')[0]) || 'email@gmail.com';
         document.getElementById('role').textContent = `${user.role || 'User'}`;
         document.getElementById('money').innerHTML = `<i class="fa-solid fa-id-badge"></i> Rp ${user.money?.toLocaleString() || '0'}`;
-        
+
+        // loginAt hanya dari localStorage
         document.getElementById('loginAt').textContent = `Time: ${userLocal.loginAt ? new Date(userLocal.loginAt).toLocaleString() : '-'}`;
-        
+
         document.getElementById('expired').textContent = `Exp: ${user.expireAt ? new Date(user.expireAt).toLocaleDateString() : '-'}`;
         document.getElementById('pp').src = user.profilePicture || 'https://raw.githubusercontent.com/Yudzxml/UploaderV2/main/tmp/119ca9f4.jpg';
 
