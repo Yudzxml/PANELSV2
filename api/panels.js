@@ -382,14 +382,16 @@ module.exports = async function handler(req, res) {
     return res.json({ active: false, maintenance: true });
       }
      },
-      panel_create: async () => {
-  if (method !== 'POST') return res.status(405).json({ error: 'Method POST diperlukan' });
+      panel_create: async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method POST diperlukan' });
 
   const { email, username, password, ram } = req.body;
 
   if (!email || !username || !password || !ram) {
     return res.status(400).json({ error: 'Field email, username, password, dan ram wajib diisi' });
   }
+
+  let deducted = 0;
 
   try {
     const userRef = db.collection('users').doc(email);
@@ -404,18 +406,29 @@ module.exports = async function handler(req, res) {
       return res.status(403).json({ error: 'Akun Kamu sudah expired' });
     }
 
-    // cek role dan saldo
     if (userData.role !== 'admin') {
       if (!userData.money || userData.money < 3000) {
         return res.status(402).json({ error: 'Saldo tidak cukup untuk membuat panel', required: 3000, current: userData.money || 0 });
       }
-      // kurangi saldo 3000
       await userRef.update({ money: userData.money - 3000 });
+      deducted = 3000;
+    }
+
+    const panelsSnapshot = await userRef.collection('panels')
+      .where('username', '==', username)
+      .get();
+
+    if (!panelsSnapshot.empty) {
+      if (deducted > 0) await userRef.update({ money: userData.money });
+      return res.status(409).json({ error: 'Panel dengan username ini sudah ada' });
     }
 
     const panelData = await createPanelAPI({ ram, username, password });
 
-    if (!panelData?.serverId) return res.status(500).json({ error: 'Server API tidak mengembalikan serverId' });
+    if (!panelData?.serverId) {
+      if (deducted > 0) await userRef.update({ money: userData.money });
+      return res.status(500).json({ error: 'Server API tidak mengembalikan serverId' });
+    }
 
     await userRef.collection('panels').doc(String(panelData.serverId)).set({
       ...panelData,
@@ -425,6 +438,14 @@ module.exports = async function handler(req, res) {
     return res.json({ message: 'Panel berhasil dibuat', panel: panelData });
 
   } catch (err) {
+    if (deducted > 0) {
+      try {
+        const userRef = db.collection('users').doc(email);
+        const userDoc = await userRef.get();
+        const userData = userDoc.data();
+        await userRef.update({ money: userData.money + deducted });
+      } catch {}
+    }
     return res.status(500).json({ error: 'Gagal membuat panel: ' + (err.message || 'Unknown error') });
   }
 },
