@@ -382,7 +382,7 @@ module.exports = async function handler(req, res) {
     return res.json({ active: false, maintenance: true });
       }
      },
-      panel_create: async (req, res) => {
+      panel_create: async () => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method POST diperlukan' });
 
   const { email, username, password, ram } = req.body;
