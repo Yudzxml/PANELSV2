@@ -216,15 +216,13 @@ p.lupa-password:hover {
 const BASE_URL = '/api/panels'; 
 
 async function getUserInfo(email) {
-    if (!email) throw new Error('Email diperlukan');
-    const res = await axios.get(`${BASE_URL}`, {
-  params: {
-    action: 'user_info',
-    email
-  }
-});
-    return res.data;
+  if (!email) throw new Error('Email diperlukan');
+  const res = await axios.get(`${BASE_URL}`, {
+    params: { action: 'user_info', email }
+  });
+  return res.data;
 }
+
 async function getServerMaintenance() {
   try {
     const res = await axios.get(`${BASE_URL}`, {
@@ -240,15 +238,15 @@ async function getServerMaintenance() {
     return { active: false, maintenance: true };
   }
 }
+
 async function checkAutoLogin() {
   const loginInfo = localStorage.getItem('loginInfo');
   if (!loginInfo) return;
 
   try {
-    const { email, expired } = JSON.parse(loginInfo);
-    const now = new Date();
+    const { email } = JSON.parse(loginInfo);
 
-    if (expired && new Date(expired) < now) {
+    if (!email) {
       localStorage.removeItem('loginInfo');
       return;
     }
@@ -262,6 +260,7 @@ async function checkAutoLogin() {
 
   } catch (err) {
     console.error('Gagal membaca login info', err);
+    localStorage.removeItem('loginInfo');
   }
 }
 
@@ -277,7 +276,6 @@ async function login() {
   }
 
   try {
-
     const { user } = await getUserInfo(email);
     if (!user) {
       showToast('Email tidak ditemukan.', 'error');
@@ -289,17 +287,12 @@ async function login() {
       return;
     }
 
-    const now = new Date();
-    if (user.expireAt && new Date(user.expireAt) < now) {
-      showToast('Oops! Akun Anda sudah kedaluwarsa. Hubungi pemilik untuk memperpanjang akses reseller.', 'warning');
-      return;
-    }
+    // Simpan data user ke localStorage
     localStorage.setItem('loginInfo', JSON.stringify({
       email: user.email,
       role: user.role,
       money: user.money,
-      expired: user.expireAt,
-      loginAt: now.toISOString()
+      loginAt: new Date().toISOString()
     }));
     
     const maintenanceData = await getServerMaintenance();
@@ -316,44 +309,44 @@ async function login() {
 }
 
 function showToast(message, type = 'success', duration = 4000) {
-    const container = document.getElementById('toast-container');
-    const existingToast = container.querySelector('.toast');
-    if (existingToast) existingToast.remove();
+  const container = document.getElementById('toast-container');
+  const existingToast = container.querySelector('.toast');
+  if (existingToast) existingToast.remove();
 
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
 
-    setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, duration);
+  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
 }
 
 // Toggle visibility password
 document.getElementById('togglePwd').addEventListener('click', () => {
-    const pwdInput = document.getElementById('password');
-    const toggleIcon = document.getElementById('togglePwd');
-    if (pwdInput.type === 'password') {
-        pwdInput.type = 'text';
-        toggleIcon.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        pwdInput.type = 'password';
-        toggleIcon.classList.replace('fa-eye-slash', 'fa-eye');
-    }
+  const pwdInput = document.getElementById('password');
+  const toggleIcon = document.getElementById('togglePwd');
+  if (pwdInput.type === 'password') {
+    pwdInput.type = 'text';
+    toggleIcon.classList.replace('fa-eye', 'fa-eye-slash');
+  } else {
+    pwdInput.type = 'password';
+    toggleIcon.classList.replace('fa-eye-slash', 'fa-eye');
+  }
 });
 
 function forgotPassword() {
-    const email = document.getElementById('email').value.trim();
-    if (!email) {
-        showToast('Masukkan emailmu terlebih dahulu.', 'warning');
-        return;
-    }
-    const waNumber = '6283872031397';
-    const message = encodeURIComponent(`Halo Admin, saya lupa password akun dengan email: ${email}`);
-    window.open(`https://wa.me/${waNumber}?text=${message}`, '_blank');
+  const email = document.getElementById('email').value.trim();
+  if (!email) {
+    showToast('Masukkan emailmu terlebih dahulu.', 'warning');
+    return;
+  }
+  const waNumber = '6283872031397';
+  const message = encodeURIComponent(`Halo Admin, saya lupa password akun dengan email: ${email}`);
+  window.open(`https://wa.me/${waNumber}?text=${message}`, '_blank');
 }
 
 // Particle background
@@ -366,44 +359,44 @@ const particlesArray = [];
 const colors = ['#ffffff', '#00aaff', '#ff00aa'];
 
 class Particle {
-    constructor(){
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 3 + 1;
-        this.speedX = Math.random() - 0.5;
-        this.speedY = Math.random() - 0.5;
-        this.color = colors[Math.floor(Math.random() * colors.length)];
-    }
-    update(){
-        this.x += this.speedX;
-        this.y += this.speedY;
-        if(this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-        if(this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-    }
-    draw(){
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-    }
+  constructor(){
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.size = Math.random() * 3 + 1;
+    this.speedX = Math.random() - 0.5;
+    this.speedY = Math.random() - 0.5;
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+  }
+  update(){
+    this.x += this.speedX;
+    this.y += this.speedY;
+    if(this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+    if(this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+  }
+  draw(){
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 function init(){
-    for(let i = 0; i < 100; i++) particlesArray.push(new Particle());
+  for(let i = 0; i < 100; i++) particlesArray.push(new Particle());
 }
 
 function animate(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    particlesArray.forEach(p => { p.update(); p.draw(); });
-    requestAnimationFrame(animate);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particlesArray.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(animate);
 }
 
 init();
 animate();
 
 window.addEventListener('resize', ()=>{
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 });
 </script>
 </body>

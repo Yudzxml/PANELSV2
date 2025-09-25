@@ -753,21 +753,6 @@ async function loadUserData() {
         const userLocal = JSON.parse(loginInfo);
         console.log("[loadUserData] Data userLocal:", userLocal);
 
-        const now = Date.now();
-        console.log("[loadUserData] Waktu sekarang (timestamp):", now);
-
-        // Cek expired (ambil dari localStorage)
-        if (!userLocal.expired || new Date(userLocal.expired).getTime() < now) {
-            console.warn("[loadUserData] Sesi user expired atau tidak ada expired time.");
-            showToast('Sesi Anda telah berakhir. Silahkan login kembali.', 'warning');
-            localStorage.removeItem('loginInfo');
-            setTimeout(() => {
-                console.log("[loadUserData] Redirect ke halaman index (login) karena expired.");
-                window.location.href = 'index.html';
-            }, 2000);
-            return;
-        }
-
         console.log("[loadUserData] Mengambil data user dari server...");
         const res = await axios.get(BASE_URL, {
             params: {
@@ -777,21 +762,27 @@ async function loadUserData() {
         });
         console.log("[loadUserData] Response server:", res);
 
-        // assign ke global user (bukan bikin const baru)
+        // assign ke global user
         user = res.data.user;
         console.log("[loadUserData] Data user dari server:", user);
 
         console.log("[loadUserData] Update DOM dengan data user...");
 
-        document.getElementById('name').textContent = (user.email?.split('@')[0]) || 'email@gmail.com';
+        document.getElementById('name').textContent =
+            (user.email?.split('@')[0]) || 'email@gmail.com';
         document.getElementById('role').textContent = `${user.role || 'User'}`;
-        document.getElementById('money').innerHTML = `<i class="fa-solid fa-id-badge"></i> Rp ${user.money?.toLocaleString() || '0'}`;
+        document.getElementById('money').innerHTML =
+            `<i class="fa-solid fa-id-badge"></i> Rp ${user.money?.toLocaleString() || '0'}`;
 
         // loginAt hanya dari localStorage
-        document.getElementById('loginAt').textContent = `Time: ${userLocal.loginAt ? new Date(userLocal.loginAt).toLocaleString() : '-'}`;
+        document.getElementById('loginAt').textContent =
+            `Time: ${userLocal.loginAt ? new Date(userLocal.loginAt).toLocaleString() : '-'}`;
 
-        document.getElementById('expired').textContent = `Exp: ${user.expireAt ? new Date(user.expireAt).toLocaleDateString() : '-'}`;
-        document.getElementById('pp').src = user.profilePicture || 'https://raw.githubusercontent.com/Yudzxml/UploaderV2/main/tmp/119ca9f4.jpg';
+        // expired tidak dipakai lagi → kasih teks default
+        document.getElementById('expired').textContent = `Exp: Tidak ada expired`;
+
+        document.getElementById('pp').src =
+            user.profilePicture || 'https://raw.githubusercontent.com/Yudzxml/UploaderV2/main/tmp/119ca9f4.jpg';
 
         console.log("[loadUserData] Data user berhasil dimuat dan ditampilkan di UI.");
 
