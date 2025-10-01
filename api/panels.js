@@ -115,39 +115,29 @@ async function addOrUpdateUser({ email, password, activeDays, role, money }) {
     // USER BARU → semua field wajib
     if (!userDoc.exists) {
       if (!password) throw new Error('Password wajib diisi untuk user baru');
-      if (!activeDays || activeDays <= 0) throw new Error('activeDays wajib > 0 untuk user baru');
-
-      const expireAt = admin.firestore.Timestamp.fromDate(new Date(now + activeDays * 86400000));
 
       await userRef.set({
         email,
         password,
         role: role || 'user',
         money: money || 0,
-        expireAt,
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
-      return { email, expireAt: expireAt.toDate(), role: role || 'user', money: money || 0, action: 'added' };
+      return { email, role: role || 'user', money: money || 0, action: 'added' };
     }
 
     // USER EXISTING → update fleksibel
     const data = userDoc.data();
-    const currentExpire = data.expireAt?.toDate().getTime() || now;
-    const msDays = activeDays && activeDays > 0 ? activeDays * 86400000 : 0;
-    const newExpire = msDays > 0 ? new Date(Math.max(currentExpire, now) + msDays) : data.expireAt.toDate();
-
     const updateData = {};
     if (password) updateData.password = password;
     if (role) updateData.role = role;
     if (money !== undefined) updateData.money = money;
-    if (msDays > 0) updateData.expireAt = admin.firestore.Timestamp.fromDate(newExpire);
 
     if (Object.keys(updateData).length > 0) {
       await userRef.update(updateData);
       return {
         email,
-        expireAt: newExpire,
         role: updateData.role || data.role,
         money: updateData.money ?? data.money,
         action: 'updated'
@@ -155,7 +145,6 @@ async function addOrUpdateUser({ email, password, activeDays, role, money }) {
     } else {
       return {
         email,
-        expireAt: data.expireAt.toDate(),
         role: data.role,
         money: data.money,
         action: 'unchanged'
@@ -171,7 +160,6 @@ async function getUser(email) {
     const userDoc = await userRef.get();
     if (!userDoc.exists) throw new Error('User tidak ditemukan');
     const data = userDoc.data();
-    const expireAt = data.expireAt?.toDate ? data.expireAt.toDate() : data.expireAt;
     const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt;
     const panelsSnapshot = await userRef.collection('panels').get();
     const panels = panelsSnapshot.docs.map(doc => {
@@ -187,7 +175,6 @@ async function getUser(email) {
       password: data.password,
       role: data.role || 'user',
       money: data.money || 0,
-      expireAt,
       createdAt,
       panels
     };
@@ -400,11 +387,6 @@ module.exports = async function handler(req, res) {
     if (!userDoc.exists) return res.status(404).json({ error: 'Email tidak terdaftar' });
 
     const userData = userDoc.data();
-    const expireDate = userData.expireAt?.toDate ? userData.expireAt.toDate() : new Date(userData.expireAt);
-
-    if (expireDate && expireDate < new Date()) {
-      return res.status(403).json({ error: 'Akun Kamu sudah expired' });
-    }
 
     if (userData.role !== 'admin') {
       if (!userData.money || userData.money < 3000) {
